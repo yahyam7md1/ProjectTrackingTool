@@ -1,0 +1,16 @@
+# Node.js
+node_modules/
+npm-debug.log
+*.log
+.env
+
+# Frontend build output
+/frontend/dist
+/frontend/.vite
+
+# SQLite Database file
+/backend/database.db
+
+# IDE & OS files
+.DS_Store
+.vscode/

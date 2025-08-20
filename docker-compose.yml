@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      # This mounts your local src code into the container for live reloading
+      - ./backend/src:/app/src
+    env_file:
+      - ./backend/.env
