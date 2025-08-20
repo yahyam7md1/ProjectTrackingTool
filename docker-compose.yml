@@ -8,5 +8,7 @@ services:
     volumes:
       # This mounts your local src code into the container for live reloading
       - ./backend/src:/app/src
+      # This ensures the database file is persisted
+      - ./backend/database.db:/app/database.db
     env_file:
       - ./backend/.env

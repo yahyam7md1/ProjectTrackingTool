@@ -7,7 +7,11 @@
 // (e.g., POST on /api/v1/auth/admin/login) and direct the request to the correct "manager" to handle it.
 // It acts like a traffic cop, pointing requests to the right place.
 const express = require('express');
-const { adminLogin } = require('../controllers/authController');
+const { 
+  adminLogin, 
+  requestClientCode, 
+  verifyClientCode 
+} = require('../controllers/authController');
 const router = express.Router();
 
 /**
@@ -16,5 +20,19 @@ const router = express.Router();
  * @access  Public
  */
 router.post('/admin/login', adminLogin);
+
+/**
+ * @route   POST /client/request-code
+ * @desc    Request a verification code for client login
+ * @access  Public
+ */
+router.post('/client/request-code', requestClientCode);
+
+/**
+ * @route   POST /client/verify-code
+ * @desc    Verify a client's login code
+ * @access  Public
+ */
+router.post('/client/verify-code', verifyClientCode);
 
 module.exports = router;
