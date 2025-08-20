@@ -5,7 +5,16 @@
 
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { findAdminByEmail } = require('../db/data-access');
+const { 
+  findAdminByEmail,
+  findAdminVerificationCode,
+  verifyAdmin,
+  markAdminCodeAsUsed
+} = require('../db/data-access');
+const { sendVerificationEmail } = require('../utils/emailService');
+
+// Get JWT secret from environment variables
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_should_be_in_env';
 
 /**
  * @function loginAdminService
@@ -41,11 +50,16 @@ const loginAdminService = async (email, password) => {
       throw new Error('Invalid credentials');
     }
     
+    // Step 5: Check if admin account is verified
+    if (!admin.is_verified) {
+      throw new Error('Account not verified. Please check your email.');
+    }
+    
     console.log('Generating JWT token');
     const secretKey = process.env.JWT_SECRET || 'phasetracker_default_secret_key';
     console.log('Using JWT secret:', secretKey.substring(0, 3) + '...[redacted]');
     
-    // Step 5: Generate JWT token
+    // Step 6: Generate JWT token
     const token = jwt.sign(
       { adminId: admin.id },
       secretKey,
@@ -177,8 +191,128 @@ const verifyClientCodeService = async (email, code) => {
   }
 };
 
+/**
+ * @function signupAdminService
+ * @desc    Service function for creating a new admin account
+ * @param   {Object} userData - Admin user data including email, password, firstName, lastName
+ * @returns {Promise<void>} - Promise resolving when completed
+ * @throws  {Error} - Throws error for any issues
+ */
+const signupAdminService = async (userData) => {
+  try {
+    // Extract user data
+    const { email, password, firstName, lastName } = userData;
+    
+    // Import required dependencies
+    const bcrypt = require('bcrypt');
+    const { findAdminByEmail, createAdmin, createAdminVerificationCode } = require('../db/data-access');
+    const { sendVerificationEmail } = require('../utils/emailService');
+    
+    // Step 1: Check for existing user
+    const existingAdmin = await findAdminByEmail(email);
+    if (existingAdmin) {
+      throw new Error("An account with this email already exists.");
+    }
+    
+    // Step 2: Hash password
+    const saltRounds = 10;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+    
+    // Step 3: Create admin record
+    const newAdmin = await createAdmin(email, passwordHash, firstName, lastName);
+    console.log(`Created new admin with ID: ${newAdmin.id}`);
+    
+    // Step 4: Generate verification code
+    const generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Step 5: Calculate expiration (10 minutes from now)
+    const expirationDate = new Date(Date.now() + 10 * 60 * 1000);
+    
+    // Step 6: Save code to database
+    await createAdminVerificationCode(newAdmin.id, generatedCode, expirationDate);
+    
+    // Step 7: Send verification email
+    await sendVerificationEmail(newAdmin.email, generatedCode);
+    
+    console.log(`Verification code sent to admin: ${email}`);
+    
+    // Step 8: Return success (no data needed)
+  } catch (error) {
+    console.error('Error in signupAdminService:', error);
+    throw error;
+  }
+};
+
+/**
+ * @function verifyAdminAccountService
+ * @desc    Service function for verifying admin account
+ * @param   {String} email - Admin email
+ * @param   {String} code - Verification code
+ * @returns {Promise<Object>} - Promise resolving to result with JWT token
+ * @throws  {Error} - Throws error for invalid code or other issues
+ */
+const verifyAdminAccountService = async (email, code) => {
+  try {
+    // Step 1: Find the admin by email
+    const admin = await findAdminByEmail(email);
+    
+    if (!admin) {
+      throw new Error('Admin account not found');
+    }
+    
+    // Step 2: Check if the admin is already verified
+    if (admin.is_verified) {
+      throw new Error('Admin account is already verified');
+    }
+    
+    // Step 3: Find the verification code
+    const verificationData = await findAdminVerificationCode(admin.id, code);
+    
+    if (!verificationData) {
+      throw new Error('Invalid verification code');
+    }
+    
+    // Step 4: Check if the code has expired
+    if (new Date(verificationData.expires_at) < new Date()) {
+      throw new Error('Verification code has expired');
+    }
+    
+    // Step 5: Check if the code has already been used
+    if (verificationData.used) {
+      throw new Error('Verification code has already been used');
+    }
+    
+    // Step 6: Activate the admin account
+    await verifyAdmin(admin.id);
+    
+    // Step 7: Mark the verification code as used
+    await markAdminCodeAsUsed(verificationData.id);
+    
+    // Step 8: Generate JWT token
+    const token = jwt.sign(
+      { id: admin.id, email: admin.email, role: 'admin' },
+      JWT_SECRET,
+      { expiresIn: '8h' }
+    );
+    
+    console.log(`Admin account verified successfully: ${email}`);
+    
+    // Step 9: Return success with token
+    return {
+      success: true,
+      token,
+      message: 'Admin account verified successfully'
+    };
+  } catch (error) {
+    console.error('Error in verifyAdminAccountService:', error);
+    throw error;
+  }
+};
+
 module.exports = {
   loginAdminService,
   requestClientCodeService,
-  verifyClientCodeService
+  verifyClientCodeService,
+  signupAdminService,
+  verifyAdminAccountService
 };

@@ -1,59 +1,66 @@
-# Documentation: Admin Authentication Backend (Sprint 1)
+# Documentation: Admin Authentication & Onboarding (Sprint 1)
 
-**Date Completed:** [20/08/2025]
+**Date Completed:** [Your Date Here]
 
 ## 1. Objective
 
-The primary goal of this work was to implement a complete, secure, and testable backend system for administrator authentication. This system is the first locked door to the application's administrative areas, ensuring that only authorized users can proceed.
+The primary goal of this work was to implement a complete, secure, and testable backend system for administrator onboarding and authentication. This system governs how administrators are created, verified, and granted access to the application, ensuring a high level of security and user integrity from the very first interaction.
 
 ---
 
-## 2. Architectural Plan & Workflow
+## 2. System Architecture & Flow
 
-We followed a layered architecture and a block-based implementation plan to ensure separation of concerns and a methodical workflow.
+The final system consists of three core API endpoints that manage the entire admin lifecycle:
 
-### The Five Blocks of Execution:
+1.  **Sign-Up (`POST /admin/signup`):** A new user provides their details. The system creates an **unverified** account for them and dispatches a verification code via email.
+2.  **Account Verification (`POST /admin/verify-account`):** The user provides their email and the code they received. The system validates the code, **activates their account**, and issues their first session token (JWT).
+3.  **Login (`POST /admin/login`):** A returning, **verified** user provides their credentials to receive a new session token (JWT).
 
-*   **Block 1: Scaffolding the Files**
-    *   **Purpose:** To establish the architectural pattern.
-    *   **Files Created:**
-        *   `auth.routes.js`: The "front door." Defines the URL endpoints.
-        *   `authController.js`: The "manager." Handles the raw HTTP request/response.
-        *   `authService.js`: The "expert." Contains the core business logic.
-
-*   **Block 2: Seeding the First Admin**
-    *   **Purpose:** To create the first valid user in the database for testing.
-    *   **Process:** A standalone script (`seed.js`) was created to connect to the database, hash a predefined password using `bcrypt`, and insert the new admin record. This ensures we never store plain-text passwords.
-
-*   **Block 3: Implementing Core Login Logic**
-    *   **Purpose:** To write the "brains" of the authentication check.
-    *   **Process:** The `authService` was built to:
-        1.  Find a user by their email in the database.
-        2.  If found, use `bcrypt.compare()` to securely check if the provided password matches the stored hash.
-        3.  Throw an error for invalid credentials, which the controller will catch.
-
-*   **Block 4: Integrating JWT Generation**
-    *   **Purpose:** To issue a secure "session key" (JWT) upon successful login.
-    *   **Process:** The `jsonwebtoken` library was used. After a successful password check, the `authService` generates a signed token containing the admin's ID. This token is configured to expire after 8 hours for security. The `authController` was updated to return this token in the final JSON response.
-
-*   **Block 5: Wiring Up the Routes**
-    *   **Purpose:** To make the authentication endpoint live and accessible.
-    *   **Process:** The main `server.js` file was modified to `app.use('/api/v1/auth', authRoutes)`. This connects our auth feature to the main application, directing all relevant traffic to our new logic.
+This two-step sign-up process is a deliberate security measure to validate email ownership and prevent spam or unauthorized account creation.
 
 ---
 
-## 3. Debugging Log: The Docker Database Issue
+## 3. Implementation Details & Workflow
 
-During testing, we encountered a critical issue where the login was failing with a generic error.
+We followed a layered architecture and a block-based implementation plan.
 
-*   **Symptoms:** Postman returned a 500 Internal Server Error, and the seeded admin user seemed to disappear between server restarts.
+### Part 1: Initial Login Functionality
 
-*   **Root Cause Analysis:** The problem was twofold, both related to Docker:
-    1.  **`.dockerignore` Exclusion:** The `database.db` file was listed in the `.dockerignore` file. This meant that when Docker built the image, it intentionally ignored and excluded our database file. The application inside the container had no database to connect to.
-    2.  **Lack of Persistence:** Even if the file were included, data wouldn't persist across container rebuilds without a Docker Volume.
+*   **Objective:** To allow a pre-existing, trusted admin to log in.
+*   **Process:**
+    *   **Scaffolding:** The initial `auth.routes.js`, `authController.js`, and `authService.js` files were created.
+    *   **Seeding:** A standalone script (`seed.js`) was created to insert the first trusted admin into the database, ensuring their password was securely hashed with `bcrypt`.
+    *   **Core Logic:** The `loginAdminService` was built to find a user by email and use `bcrypt.compare()` to validate their password.
+    *   **JWT Integration:** Upon successful validation, the service generates a signed JSON Web Token (JWT) with an 8-hour expiration, which the controller returns to the user.
 
-*   **Solution Implemented:**
-    1.  The `database.db` line was commented out in the `.dockerignore` file, ensuring the seeded database is copied into the image during the build process.
-    2.  Improved, more detailed error logging was added to the `try...catch` blocks in the controller and service. This was crucial for moving past the generic "error occurred" message to see the real underlying error.
+### Part 2: Admin Sign-Up & Verification Flow (Enhancement)
 
-**Key Takeaway:** The environment in which code runs is just as important as the code itself. A `.dockerignore` file can prevent critical files from being included in the final container, and robust error logging is essential for effective debugging.
+*   **Objective:** To allow new administrators to self-register in a secure, two-step manner.
+*   **Database Migration:**
+    *   The schema was modified to support this new flow. An `ALTER TABLE` command was used to add an `is_verified BOOLEAN DEFAULT 0` column to the `admins` table.
+    *   A new `admin_codes` table (mirroring `client_codes`) was created to store one-time verification codes for admins.
+*   **Sign-Up Logic (`signupAdminService`):**
+    1.  Checks if an account with the provided email already exists to prevent duplicates (`409 Conflict`).
+    2.  Hashes the password and creates a new record in the `admins` table with `is_verified` set to `0`.
+    3.  Generates a 6-digit code, saves it to `admin_codes` with a 10-minute expiration, and emails it to the user.
+*   **Verification Logic (`verifyAdminAccountService`):**
+    1.  Validates the submitted code against the `admin_codes` table, checking that it exists, has not been used, and has not expired.
+    2.  If the code is valid, it marks the code as used, updates the corresponding admin's `is_verified` status to `1`, and then issues a JWT.
+
+### Part 3: Login Security Patch (Critical Fix)
+
+*   **Objective:** To close a security loophole identified during testing.
+*   **The Vulnerability:** The original `loginAdminService` did not check the `is_verified` flag, allowing an unverified user with a correct password to log in.
+*   **The Solution:**
+    1.  The `loginAdminService` was updated. After successfully comparing the password, it now performs an **additional check** on the `admin.is_verified` flag.
+    2.  If the user is not verified (`is_verified == 0`), the service throws a specific error.
+    3.  The `authController` was updated to catch this new error and return a `403 Forbidden` status, correctly indicating that the user is authenticated but not authorized to access the system.
+
+---
+
+## 4. Key Learnings & Debugging Log
+
+*   **Database Migrations:** Learned the importance of using `ALTER TABLE` to modify an existing database schema without data loss, and how to make migration scripts idempotent (re-runnable without causing errors).
+*   **File Path Robustness:** Encountered and solved issues related to relative file paths (`./`) versus absolute paths (`path.resolve`). All database scripts were updated to use absolute paths to ensure they work correctly regardless of where they are executed from.
+*   **Docker Volumes:** Confirmed the critical role of Docker Volumes for persisting data (`database.db`) and enabling live code reloading (`/src/`). This creates a seamless and efficient development loop.
+*   **Importance of Edge Case Testing:** The discovery of the login vulnerability highlighted that testing goes beyond the "happy path." Critical thinking about potential failure modes and security loopholes is essential for building robust software.

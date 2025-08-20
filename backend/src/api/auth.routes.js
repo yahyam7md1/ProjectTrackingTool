@@ -10,7 +10,9 @@ const express = require('express');
 const { 
   adminLogin, 
   requestClientCode, 
-  verifyClientCode 
+  verifyClientCode,
+  adminSignup,
+  verifyAdminAccount
 } = require('../controllers/authController');
 const router = express.Router();
 
@@ -34,5 +36,19 @@ router.post('/client/request-code', requestClientCode);
  * @access  Public
  */
 router.post('/client/verify-code', verifyClientCode);
+
+/**
+ * @route   POST /admin/signup
+ * @desc    Create a new admin account and send verification code
+ * @access  Public
+ */
+router.post('/admin/signup', adminSignup);
+
+/**
+ * @route   POST /admin/verify-account
+ * @desc    Verify admin account with code and complete registration
+ * @access  Public
+ */
+router.post('/admin/verify-account', verifyAdminAccount);
 
 module.exports = router;
