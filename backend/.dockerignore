@@ -1,3 +1,5 @@
 node_modules
+# .env is still ignored for security
 .env
-database.db
+# We need the database file to be included in the Docker image
+# database.db
