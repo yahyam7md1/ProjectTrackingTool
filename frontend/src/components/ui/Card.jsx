@@ -2,14 +2,13 @@ import React from 'react';
 import { cn } from '../../utils/cn';
 
 // Main Card container
-const Card = React.forwardRef(({ className, children, ...props }, ref) => {
+const Card = React.forwardRef(({ className, children, topAccent = true, ...props }, ref) => {
   return (
-    <div
-      ref={ref}
-      className={cn('bg-white rounded-xl shadow-lg border border-gray-100', className)}
-      {...props}
-    >
-      {children}
+    <div ref={ref} className={cn('relative rounded-xl', className)} {...props}>
+      {topAccent && (
+        <div className="absolute left-0 top-0 h-1 w-full bg-gradient-to-r from-primary-start to-primary-end rounded-t-xl" />
+      )}
+      <div className={cn('bg-white rounded-xl shadow-lg border border-gray-100')}>{children}</div>
     </div>
   );
 });
@@ -58,7 +57,7 @@ CardContent.displayName = 'CardContent';
 // CardFooter: footer area (actions) with matching padding
 const CardFooter = React.forwardRef(({ className, children, ...props }, ref) => {
   return (
-    <div ref={ref} className={cn('p-6 pt-0', className)} {...props}>
+    <div ref={ref} className={cn('p-6 pt-0 border-t border-gray-100', className)} {...props}>
       {children}
     </div>
   );

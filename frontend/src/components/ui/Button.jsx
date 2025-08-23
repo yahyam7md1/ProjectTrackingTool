@@ -4,7 +4,7 @@ import { cn } from '../../utils/cn'; // path: src/utils/cn.js
 
 // Enhanced variants with modern look: gradients, shadows, smoother hover/focus
 const buttonVariants = cva(
-  'inline-flex items-center justify-center rounded-lg text-sm font-medium transition transform-gpu focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 disabled:opacity-60 disabled:pointer-events-none',
+  'inline-flex items-center justify-center rounded-lg text-sm font-medium transition-transform motion-safe:transform-gpu motion-safe:transition hover:-translate-y-0.5 active:scale-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 focus-visible:ring-offset-1 disabled:opacity-60 disabled:pointer-events-none',
   {
     variants: {
       variant: {
