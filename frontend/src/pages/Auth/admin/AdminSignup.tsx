@@ -1,15 +1,15 @@
 import React from "react";
-import { Button } from "../../components/ui/Button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../components/ui/Card";
-import Input from "../../components/ui/Input";
-import Label from "../../components/ui/Label";
+import { Button } from "../../../components/ui/Button";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../../components/ui/Card";
+import Input from "../../../components/ui/Input";
+import Label from "../../../components/ui/Label";
 
 const AdminSignup: React.FC = () => {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle>Create Admin Account</CardTitle>
-        <CardDescription>Enter your details to get started.</CardDescription>
+        <CardDescription style={{ color: "#606060"}}>Enter your details to get started.</CardDescription>
       </CardHeader>
       <CardContent>
         <form className="space-y-6">

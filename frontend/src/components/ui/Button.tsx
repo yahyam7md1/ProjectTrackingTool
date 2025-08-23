@@ -11,7 +11,7 @@ const buttonVariants = cva(
         primary: 'bg-gradient-to-r from-primary-start to-primary-end text-white shadow-md hover:brightness-95',
         secondary: 'bg-white border border-gray-200 text-text-primary hover:bg-gray-50',
         destructive: 'bg-gradient-to-r from-error-start to-error-end text-white shadow-sm hover:brightness-95',
-        ghost: 'bg-transparent text-text-primary hover:bg-gray-100',
+        ghost: 'bg-transparent text-text-primary hover:bg-gray-100 hover:border-[#713ABE]',
       },
       size: {
         default: 'h-10 px-4',

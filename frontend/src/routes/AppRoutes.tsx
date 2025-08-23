@@ -1,13 +1,21 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import AuthLayout from "../layouts/AuthLayout";
-import AdminSignup from "../pages/Auth/AdminSignup";
+import AdminSignup from "../pages/Auth/admin/AdminSignup";
+import AdminLogin from "../pages/Auth/admin/AdminLogin";
+import AdminSignupCode from "../pages/Auth/admin/AdminSignupCode";
+import ClientLogin from "../pages/Auth/client/ClientLogin";
+import VerificationCodeClient from "../pages/Auth/client/VerificationCodeClient";
 
 const AppRoutes: React.FC = () => {
 	return (
 		<Routes>
 			<Route element={<AuthLayout />}>
 				<Route path="/admin/signup" element={<AdminSignup />} />
+				<Route path="/admin/login" element={<AdminLogin />} />
+				<Route path="/admin/verify" element={<AdminSignupCode />} />
+				<Route path="/client/login" element={<ClientLogin />} />
+				<Route path="/client/verify" element={<VerificationCodeClient />} />
 			</Route>
 		</Routes>
 	);
