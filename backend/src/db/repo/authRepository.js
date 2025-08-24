@@ -3,7 +3,7 @@
  * Contains functions for accessing and manipulating database data
  */
 
-const db = require('./database');
+const db = require('../database');
 
 /**
  * Find an admin user by email
