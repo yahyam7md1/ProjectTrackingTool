@@ -4,7 +4,7 @@ import { cn } from '../../utils/cn.ts';
 
 // Modern, elegant badge with subtle depth and transitions
 const badgeVariants = cva(
-  'inline-flex items-center border rounded-full text-xs font-semibold px-2.5 py-0.5 transition-colors duration-150 ease-in-out',
+  'inline-flex items-center border rounded-full text-xs font-semibold px-2.5 py-0.5 transition-colors duration-150 ease-in-out shadow-sm',
   {
     variants: {
       variant: {
