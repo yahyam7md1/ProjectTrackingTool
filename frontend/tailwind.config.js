@@ -34,6 +34,21 @@ export default {
           end: '#ef4444',
         },
       },
+      // Animation configurations for Radix UI components
+      keyframes: {
+        in: {
+          '0%': { opacity: 0 },
+          '100%': { opacity: 1 },
+        },
+        out: {
+          '0%': { opacity: 1 },
+          '100%': { opacity: 0 },
+        },
+      },
+      animation: {
+        in: 'in 200ms ease-in-out',
+        out: 'out 150ms ease-in-out',
+      },
       // END: Custom colors
     },
   },

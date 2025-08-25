@@ -6,6 +6,7 @@ import AdminLogin from "../pages/Auth/admin/AdminLogin";
 import AdminSignupCode from "../pages/Auth/admin/AdminSignupCode";
 import ClientLogin from "../pages/Auth/client/ClientLogin";
 import VerificationCodeClient from "../pages/Auth/client/VerificationCodeClient";
+import TableDemo from "../pages/testPages/TableDemo";
 
 const AppRoutes: React.FC = () => {
 	return (
@@ -17,6 +18,8 @@ const AppRoutes: React.FC = () => {
 				<Route path="/client/login" element={<ClientLogin />} />
 				<Route path="/client/verify" element={<VerificationCodeClient />} />
 			</Route>
+			{/* Test route for Table component demo */}
+			<Route path="/test/table" element={<TableDemo />} />
 		</Routes>
 	);
 };
