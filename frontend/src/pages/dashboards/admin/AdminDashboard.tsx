@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { PlusIcon, SearchIcon, FilterIcon, Loader2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from '../../../components/ui/Button';
 import ProjectCard from '../../../components/ui/ProjectCard';
 import CreateProjectModal from '../../../components/ui/CreateProjectModal';
@@ -211,11 +212,19 @@ const AdminDashboard: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProjects.map((project) => (
-              <ProjectCard
+              <Link 
+                to={`/admin/projects/${project.id}`} 
                 key={project.id}
-                project={project}
-                onDelete={handleDeleteProject}
-              />
+                className="block transition-transform hover:-translate-y-1"
+              >
+                <ProjectCard
+                  project={project}
+                  onDelete={(id) => {
+                    // Prevent navigation when clicking delete button
+                    handleDeleteProject(id);
+                  }}
+                />
+              </Link>
             ))}
           </div>
         </>

@@ -101,9 +101,34 @@ const removeClientFromProject = (projectId, clientId) => {
   });
 };
 
+/**
+ * Find all clients associated with a specific project
+ * @param {number} projectId - The ID of the project
+ * @returns {Promise<Array>} Array of client objects assigned to the project
+ */
+const findClientsByProjectId = (projectId) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+      SELECT c.* 
+      FROM clients c 
+      JOIN project_clients pc ON c.id = pc.client_id 
+      WHERE pc.project_id = ?
+    `;
+    
+    db.all(query, [projectId], (err, clients) => {
+      if (err) {
+        return reject(err);
+      }
+      
+      resolve(clients || []);
+    });
+  });
+};
+
 module.exports = {
   findClientByEmail,
   createClient,
   assignClientToProject,
-  removeClientFromProject
+  removeClientFromProject,
+  findClientsByProjectId
 };

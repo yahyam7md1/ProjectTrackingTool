@@ -98,8 +98,47 @@ const reorderPhases = async (orderedPhaseIds) => {
   }
 };
 
+/**
+ * Update a phase by its ID
+ * @param {number} phaseId - The ID of the phase to update
+ * @param {Object} data - The update data
+ * @param {string} data.name - The new name of the phase
+ * @param {string} data.description - The new description of the phase
+ * @returns {Promise<Object>} The updated phase object
+ * @throws {Error} If phase not found or update fails
+ */
+const updatePhase = async (phaseId, data) => {
+  try {
+    // Validate required fields
+    if (!data.name) {
+      throw new Error('Phase name is required');
+    }
+    
+    // Update and return the updated phase
+    return await phaseRepository.updatePhase(phaseId, data);
+  } catch (error) {
+    throw new Error(`Failed to update phase: ${error.message}`);
+  }
+};
+
+/**
+ * Delete a phase by its ID
+ * @param {number} phaseId - The ID of the phase to delete
+ * @returns {Promise<boolean>} True if the operation was successful
+ * @throws {Error} If phase not found or delete fails
+ */
+const deletePhase = async (phaseId) => {
+  try {
+    return await phaseRepository.deletePhase(phaseId);
+  } catch (error) {
+    throw new Error(`Failed to delete phase: ${error.message}`);
+  }
+};
+
 module.exports = {
   addPhaseToProject,
   setActivePhase,
-  reorderPhases
+  reorderPhases,
+  updatePhase,
+  deletePhase
 };

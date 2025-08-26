@@ -82,6 +82,20 @@ router.post('/projects/:projectId/phases/:phaseId/set-active', phaseController.s
 router.put('/projects/:projectId/phases/reorder', phaseController.reorderPhases);
 
 /**
+ * @route   PUT /projects/:projectId/phases/:phaseId
+ * @desc    Update a specific phase
+ * @access  Private - Admin only
+ */
+router.put('/projects/:projectId/phases/:phaseId', phaseController.updatePhase);
+
+/**
+ * @route   DELETE /projects/:projectId/phases/:phaseId
+ * @desc    Delete a specific phase
+ * @access  Private - Admin only
+ */
+router.delete('/projects/:projectId/phases/:phaseId', phaseController.deletePhase);
+
+/**
  * Client Management Routes
  */
 

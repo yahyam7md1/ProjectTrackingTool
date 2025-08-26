@@ -4,6 +4,7 @@
  */
 
 const phaseService = require('../services/phaseService');
+const phaseRepository = require('../db/repo/phaseRepository');
 
 /**
  * Add a new phase to a project
@@ -132,8 +133,96 @@ const reorderPhases = async (req, res) => {
   }
 };
 
+/**
+ * Update a phase
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+const updatePhase = async (req, res) => {
+  try {
+    const phaseId = parseInt(req.params.phaseId);
+    const projectId = parseInt(req.params.projectId); // for validation purposes
+    const { name, description } = req.body;
+    
+    // Validate required fields
+    if (!phaseId) {
+      return res.status(400).json({ error: 'Phase ID is required' });
+    }
+    
+    if (!name) {
+      return res.status(400).json({ error: 'Phase name is required' });
+    }
+    
+    const updatedPhase = await phaseService.updatePhase(phaseId, { name, description });
+    
+    // Verify that the phase belongs to the specified project
+    if (updatedPhase.project_id !== projectId) {
+      return res.status(400).json({ 
+        error: 'Phase does not belong to the specified project' 
+      });
+    }
+    
+    return res.status(200).json(updatedPhase);
+  } catch (error) {
+    console.error('Error updating phase:', error);
+    
+    // Specific error handling for common cases
+    if (error.message.includes('not found')) {
+      return res.status(404).json({ error: error.message });
+    }
+    
+    return res.status(500).json({ error: error.message || 'Failed to update phase' });
+  }
+};
+
+/**
+ * Delete a phase
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+const deletePhase = async (req, res) => {
+  try {
+    const phaseId = parseInt(req.params.phaseId);
+    
+    // Validate required fields
+    if (!phaseId) {
+      return res.status(400).json({ error: 'Phase ID is required' });
+    }
+    
+    // Before deleting, check if the phase belongs to the specified project
+    const phase = await phaseRepository.findPhaseById(phaseId);
+    
+    if (!phase) {
+      return res.status(404).json({ error: 'Phase not found' });
+    }
+    
+    const projectId = parseInt(req.params.projectId);
+    if (phase.project_id !== projectId) {
+      return res.status(400).json({ 
+        error: 'Phase does not belong to the specified project' 
+      });
+    }
+    
+    await phaseService.deletePhase(phaseId);
+    
+    // Return 204 No Content for successful deletion without response body
+    return res.status(204).send();
+  } catch (error) {
+    console.error('Error deleting phase:', error);
+    
+    // Specific error handling for common cases
+    if (error.message.includes('not found')) {
+      return res.status(404).json({ error: error.message });
+    }
+    
+    return res.status(500).json({ error: error.message || 'Failed to delete phase' });
+  }
+};
+
 module.exports = {
   addPhaseToProject,
   setActivePhase,
-  reorderPhases
+  reorderPhases,
+  updatePhase,
+  deletePhase
 };

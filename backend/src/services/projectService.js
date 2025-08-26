@@ -4,6 +4,8 @@
  */
 
 const projectRepository = require('../db/repo/projectRepository');
+const phaseRepository = require('../db/repo/phaseRepository');
+const clientRepository = require('../db/repo/clientRepository');
 
 /**
  * Create a new project
@@ -34,18 +36,31 @@ const getAllProjects = async () => {
 };
 
 /**
- * Get project by ID
+ * Get project by ID with associated phases and clients
  * @param {number} projectId - The ID of the project to find
- * @returns {Promise<Object>} The project object
+ * @returns {Promise<Object>} The project object with phases and clients arrays
  * @throws {Error} If project not found
  */
 const getProjectById = async (projectId) => {
   try {
+    // Get the main project data
     const project = await projectRepository.findProjectById(projectId);
     if (!project) {
       throw new Error('Project not found');
     }
-    return project;
+    
+    // Get all phases associated with the project
+    const phases = await phaseRepository.findPhasesByProjectId(projectId);
+    
+    // Get all clients associated with the project
+    const clients = await clientRepository.findClientsByProjectId(projectId);
+    
+    // Assemble and return the complete project object
+    return {
+      ...project,
+      phases: phases,
+      clients: clients
+    };
   } catch (error) {
     throw error;
   }

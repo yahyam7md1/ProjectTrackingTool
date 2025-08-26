@@ -84,6 +84,29 @@ const findPhaseById = (phaseId) => {
 };
 
 /**
+ * Find all phases for a specific project ordered by phase_order
+ * @param {number} projectId - The ID of the project
+ * @returns {Promise<Array>} Array of phase objects belonging to the project
+ */
+const findPhasesByProjectId = (projectId) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+      SELECT * FROM phases 
+      WHERE project_id = ? 
+      ORDER BY phase_order ASC
+    `;
+    
+    db.all(query, [projectId], (err, phases) => {
+      if (err) {
+        return reject(err);
+      }
+      
+      resolve(phases || []);
+    });
+  });
+};
+
+/**
  * Set a specific phase as active and mark previous phases as completed
  * @param {number} projectId - The ID of the project
  * @param {number} phaseId - The ID of the phase to set as active
@@ -212,10 +235,77 @@ const updatePhaseOrder = (orderedPhaseIds) => {
   });
 };
 
+/**
+ * Update a phase by its ID
+ * @param {number} phaseId - The ID of the phase to update
+ * @param {Object} data - The update data
+ * @param {string} data.name - The new name of the phase
+ * @param {string} data.description - The new description of the phase
+ * @returns {Promise<Object>} The updated phase object
+ */
+const updatePhase = (phaseId, data) => {
+  const { name, description } = data;
+  
+  return new Promise((resolve, reject) => {
+    const query = `
+      UPDATE phases 
+      SET name = ?, description = ?, updated_at = datetime('now')
+      WHERE id = ?
+    `;
+    
+    db.run(query, [name, description, phaseId], function(err) {
+      if (err) {
+        return reject(err);
+      }
+      
+      // If no rows were affected, the phase doesn't exist
+      if (this.changes === 0) {
+        return reject(new Error('Phase not found'));
+      }
+      
+      // Get the updated phase
+      db.get(`SELECT * FROM phases WHERE id = ?`, [phaseId], (err, phase) => {
+        if (err) {
+          return reject(err);
+        }
+        
+        resolve(phase);
+      });
+    });
+  });
+};
+
+/**
+ * Delete a phase by its ID
+ * @param {number} phaseId - The ID of the phase to delete
+ * @returns {Promise<boolean>} True if the operation was successful
+ */
+const deletePhase = (phaseId) => {
+  return new Promise((resolve, reject) => {
+    const query = `DELETE FROM phases WHERE id = ?`;
+    
+    db.run(query, [phaseId], function(err) {
+      if (err) {
+        return reject(err);
+      }
+      
+      // If no rows were affected, the phase doesn't exist
+      if (this.changes === 0) {
+        return reject(new Error('Phase not found'));
+      }
+      
+      resolve(true);
+    });
+  });
+};
+
 module.exports = {
   createPhase,
   findMaxPhaseOrder,
   findPhaseById,
+  findPhasesByProjectId,
   setActivePhase,
-  updatePhaseOrder
+  updatePhaseOrder,
+  updatePhase,
+  deletePhase
 };

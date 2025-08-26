@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -24,13 +24,24 @@ interface AuthProviderProps {
 const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const isAuthenticated = !!token;
+  
+  // Initialize token from localStorage on mount
+  useEffect(() => {
+    const storedToken = localStorage.getItem('token');
+    if (storedToken) {
+      setToken(storedToken);
+      // No need to manually update API headers - our apiService handles this dynamically
+    }
+  }, []);
 
   const login = (newToken: string) => {
+    // Simply update state and localStorage - the API service will use the latest token automatically
     localStorage.setItem('token', newToken);
     setToken(newToken);
   };
 
   const logout = () => {
+    // Simply remove from localStorage and update state - the API service will handle the rest
     localStorage.removeItem('token');
     setToken(null);
   };
