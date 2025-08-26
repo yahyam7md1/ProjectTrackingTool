@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { PlusIcon, SearchIcon, FilterIcon } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { PlusIcon, SearchIcon, FilterIcon, Loader2 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import ProjectCard from '../../../components/ui/ProjectCard';
 import CreateProjectModal from '../../../components/ui/CreateProjectModal';
@@ -12,61 +12,59 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator
 } from '../../../components/ui/DropdownMenu';
+import apiService from '../../../api/apiService';
+import { useAuth } from '../../../context/AuthContext';
 
-// Mock project data
-const mockProjects = [
-  {
-    id: '1',
-    name: 'E-Commerce Website',
-    description: 'A full-stack e-commerce website with user authentication, product catalog, and payment integration.',
-    phasesCompleted: 3,
-    totalPhases: 5,
-    clientCount: 2,
-    createdAt: '2025-06-15T10:30:00',
-    status: 'active' as const,
-  },
-  {
-    id: '2',
-    name: 'Mobile Banking App',
-    description: 'Native mobile application for banking services including account management, transfers, and bill payments.',
-    phasesCompleted: 1,
-    totalPhases: 4,
-    clientCount: 1,
-    createdAt: '2025-07-02T14:45:00',
-    status: 'pending' as const,
-  },
-  {
-    id: '3',
-    name: 'Healthcare Portal',
-    description: 'Web portal for healthcare providers to manage patient records, appointments, and billing.',
-    phasesCompleted: 4,
-    totalPhases: 4,
-    clientCount: 3,
-    createdAt: '2025-05-20T09:15:00',
-    status: 'completed' as const,
-  },
-  {
-    id: '4',
-    name: 'Inventory Management System',
-    description: 'Software solution for tracking inventory levels, orders, sales, and deliveries for retail businesses.',
-    phasesCompleted: 0,
-    totalPhases: 3,
-    clientCount: 1,
-    createdAt: '2025-07-10T11:20:00',
-    status: 'pending' as const,
-  },
-];
+// Define project type based on the ProjectCard props
+type ProjectType = {
+  id: string;
+  name: string;
+  description: string;
+  phasesCompleted: number;
+  totalPhases: number;
+  clientCount: number;
+  createdAt: string;
+  status: 'active' | 'completed' | 'pending' | 'canceled';
+};
 
 const AdminDashboard: React.FC = () => {
+  const { token } = useAuth();
+  
   // State for managing the CreateProjectModal visibility
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  // State for projects (initialized with mock data)
-  const [projects, setProjects] = useState(mockProjects);
+  // State for projects with API data fetching
+  const [projects, setProjects] = useState<ProjectType[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   
   // State for search and filter functionality
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
+  
+  // Fetch projects from API
+  useEffect(() => {
+    const fetchProjects = async () => {
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        const response = await apiService.get('/admin/projects');
+        if (response.data.success) {
+          setProjects(response.data.projects);
+        } else {
+          setError('Failed to load projects');
+        }
+      } catch (err) {
+        console.error('Error fetching projects:', err);
+        setError('An error occurred while fetching projects. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchProjects();
+  }, [token]);
   
   // Filter projects based on search term and status filter
   const filteredProjects = useMemo(() => {
@@ -88,29 +86,74 @@ const AdminDashboard: React.FC = () => {
   const hasProjects = projects.length > 0;
 
   // Handler for creating a new project
-  const handleCreateProject = (name: string, description: string) => {
-    const newProject = {
-      id: Date.now().toString(),
-      name,
-      description,
-      phasesCompleted: 0,
-      totalPhases: 3, // Default number of phases
-      clientCount: 0,
-      createdAt: new Date().toISOString(),
-      status: 'pending' as const,
-    };
-
-    setProjects([newProject, ...projects]);
+  const handleCreateProject = async (name: string, description: string) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const response = await apiService.post('/admin/projects', {
+        name,
+        description
+      });
+      
+      if (response.data.success) {
+        // Add the new project to the current projects list
+        setProjects([response.data.project, ...projects]);
+        // Close the modal after successful creation
+        setIsModalOpen(false);
+      } else {
+        setError('Failed to create project');
+      }
+    } catch (err) {
+      console.error('Error creating project:', err);
+      setError('An error occurred while creating the project. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Handler for deleting a project
-  const handleDeleteProject = (id: string) => {
-    setProjects(projects.filter(project => project.id !== id));
+  const handleDeleteProject = async (id: string) => {
+    try {
+      const response = await apiService.delete(`/admin/projects/${id}`);
+      
+      if (response.data.success) {
+        // Remove the deleted project from the list
+        setProjects(projects.filter(project => project.id !== id));
+      } else {
+        setError('Failed to delete project');
+      }
+    } catch (err) {
+      console.error('Error deleting project:', err);
+      setError('An error occurred while deleting the project. Please try again.');
+    }
   };
 
   return (
     <div className="p-6 max-w-7xl mx-auto bg-white min-h-screen">
-      {hasProjects ? (
+      {isLoading ? (
+        /* Loading State */
+        <div className="flex flex-col items-center justify-center h-[70vh]">
+          <Loader2 size={48} className="animate-spin text-primary mb-4" />
+          <p className="text-lg text-gray-500">Loading projects...</p>
+        </div>
+      ) : error ? (
+        /* Error State */
+        <div className="flex flex-col items-center justify-center h-[70vh]">
+          <div className="text-center space-y-4">
+            <h2 className="text-2xl font-bold text-error">Error</h2>
+            <p className="text-lg text-gray-500">{error}</p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              variant="secondary"
+              size="lg"
+              className="mt-4"
+            >
+              Try Again
+            </Button>
+          </div>
+        </div>
+      ) : hasProjects ? (
         <>
           {/* Projects Grid View */}
           <div className="flex justify-between items-center mb-8">
