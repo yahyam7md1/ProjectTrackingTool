@@ -1,7 +1,7 @@
 import React from 'react';
 import { Trash2, Users, Calendar } from 'lucide-react';
-import { Badge } from './ui/Badge';
-import { IconButton } from './ui/IconButton';
+import { Badge } from './Badge';
+import { IconButton } from './IconButton';
 
 interface ProjectCardProps {
   project: {

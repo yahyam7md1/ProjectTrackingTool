@@ -1,8 +1,17 @@
-import React, { useState } from 'react';
-import { PlusIcon } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { PlusIcon, SearchIcon, FilterIcon } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
-import ProjectCard from '../../../components/ProjectCard';
+import ProjectCard from '../../../components/ui/ProjectCard';
 import CreateProjectModal from '../../../components/ui/CreateProjectModal';
+import Input from '../../../components/ui/Input';
+import { 
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator
+} from '../../../components/ui/DropdownMenu';
 
 // Mock project data
 const mockProjects = [
@@ -55,6 +64,26 @@ const AdminDashboard: React.FC = () => {
   // State for projects (initialized with mock data)
   const [projects, setProjects] = useState(mockProjects);
   
+  // State for search and filter functionality
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+  
+  // Filter projects based on search term and status filter
+  const filteredProjects = useMemo(() => {
+    return projects.filter(project => {
+      // Filter by status (if not "All")
+      const statusMatch = statusFilter === 'All' || 
+        project.status.toLowerCase() === statusFilter.toLowerCase();
+      
+      // Filter by search term
+      const searchMatch = !searchTerm || 
+        project.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        project.description.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      return statusMatch && searchMatch;
+    });
+  }, [projects, searchTerm, statusFilter]);
+  
   // Determine if there are any projects
   const hasProjects = projects.length > 0;
 
@@ -80,22 +109,65 @@ const AdminDashboard: React.FC = () => {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-6 max-w-7xl mx-auto bg-white min-h-screen">
       {hasProjects ? (
         <>
           {/* Projects Grid View */}
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-2xl font-bold text-text-primary">Your Projects</h1>
-            <Button
-              onClick={() => setIsModalOpen(true)}
-              leftIcon={<PlusIcon size={16} />}
-            >
-              Create New Project
-            </Button>
+          </div>
+          
+          {/* Control Bar */}
+          <div className="flex flex-col md:flex-row items-center gap-4 mb-6">
+            <div className="relative w-full md:w-64">
+              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+              <Input
+                className="pl-10"
+                placeholder="Search projects..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            
+            <div className="flex-1 flex justify-between items-center gap-4 w-full">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="secondary" leftIcon={<FilterIcon size={16} />}>
+                    {statusFilter === 'All' ? 'All Projects' : `${statusFilter} Projects`}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56">
+                  <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setStatusFilter('All')}>
+                    All
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setStatusFilter('Active')}>
+                    Active
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setStatusFilter('Completed')}>
+                    Completed
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setStatusFilter('Pending')}>
+                    Pending
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setStatusFilter('Canceled')}>
+                    Canceled
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
+              <Button
+                onClick={() => setIsModalOpen(true)}
+                leftIcon={<PlusIcon size={16} />}
+              >
+                Create New Project
+              </Button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((project) => (
+            {filteredProjects.map((project) => (
               <ProjectCard
                 key={project.id}
                 project={project}

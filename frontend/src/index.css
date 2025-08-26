@@ -31,9 +31,9 @@ body {
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color-scheme: light;
+  color: #334155; /* text-primary from your tailwind config */
+  background-color: #FFFFFF; /* white background */
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
