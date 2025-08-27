@@ -241,19 +241,36 @@ const updatePhaseOrder = (orderedPhaseIds) => {
  * @param {Object} data - The update data
  * @param {string} data.name - The new name of the phase
  * @param {string} data.description - The new description of the phase
+ * @param {string} [data.estimated_completion_at] - Optional estimated completion date
  * @returns {Promise<Object>} The updated phase object
  */
 const updatePhase = (phaseId, data) => {
-  const { name, description } = data;
+  const { name, description, estimated_completion_at } = data;
+  
+  // Determine if we need to update the estimated completion date
+  const hasEstimatedDate = estimated_completion_at !== undefined;
   
   return new Promise((resolve, reject) => {
-    const query = `
-      UPDATE phases 
-      SET name = ?, description = ?, updated_at = datetime('now')
-      WHERE id = ?
-    `;
+    let query;
+    let params;
     
-    db.run(query, [name, description, phaseId], function(err) {
+    if (hasEstimatedDate) {
+      query = `
+        UPDATE phases 
+        SET name = ?, description = ?, estimated_completion_at = ?, updated_at = datetime('now')
+        WHERE id = ?
+      `;
+      params = [name, description, estimated_completion_at, phaseId];
+    } else {
+      query = `
+        UPDATE phases 
+        SET name = ?, description = ?, updated_at = datetime('now')
+        WHERE id = ?
+      `;
+      params = [name, description, phaseId];
+    }
+    
+    db.run(query, params, function(err) {
       if (err) {
         return reject(err);
       }
@@ -299,6 +316,66 @@ const deletePhase = (phaseId) => {
   });
 };
 
+/**
+ * Mark a phase as complete
+ * @param {number} phaseId - The ID of the phase to mark as complete
+ * @returns {Promise<boolean>} True if the operation was successful
+ */
+const setPhaseComplete = (phaseId) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+      UPDATE phases
+      SET 
+        is_completed = 1,
+        is_active = 0,
+        updated_at = datetime('now')
+      WHERE id = ?
+    `;
+    
+    db.run(query, [phaseId], function(err) {
+      if (err) {
+        return reject(err);
+      }
+      
+      if (this.changes === 0) {
+        return reject(new Error('Phase not found'));
+      }
+      
+      resolve(true);
+    });
+  });
+};
+
+/**
+ * Reopen a completed phase
+ * @param {number} phaseId - The ID of the phase to reopen
+ * @returns {Promise<boolean>} True if the operation was successful
+ */
+const reopenPhase = (phaseId) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+      UPDATE phases
+      SET 
+        is_completed = 0,
+        is_active = 0,
+        updated_at = datetime('now')
+      WHERE id = ?
+    `;
+    
+    db.run(query, [phaseId], function(err) {
+      if (err) {
+        return reject(err);
+      }
+      
+      if (this.changes === 0) {
+        return reject(new Error('Phase not found'));
+      }
+      
+      resolve(true);
+    });
+  });
+};
+
 module.exports = {
   createPhase,
   findMaxPhaseOrder,
@@ -307,5 +384,7 @@ module.exports = {
   setActivePhase,
   updatePhaseOrder,
   updatePhase,
-  deletePhase
+  deletePhase,
+  setPhaseComplete,
+  reopenPhase
 };

@@ -113,10 +113,10 @@ const PhasesList: React.FC<PhasesListProps> = ({
         // Fallback UI update if refetch isn't available
         const updatedPhases = phases.map(phase => {
           if (phase.id === phaseId) {
-            return { ...phase, status: 'active' as const };
-          } else if (phase.status === 'active') {
+            return { ...phase, is_active: true, is_completed: false };
+          } else if (phase.is_active) {
             // Ensure only one phase is active at a time
-            return { ...phase, status: 'pending' as const };
+            return { ...phase, is_active: false };
           }
           return phase;
         });
@@ -142,7 +142,7 @@ const PhasesList: React.FC<PhasesListProps> = ({
         // Fallback UI update if refetch isn't available
         const updatedPhases = phases.map(phase => {
           if (phase.id === phaseId) {
-            return { ...phase, status: 'completed' as const };
+            return { ...phase, is_active: false, is_completed: true };
           }
           return phase;
         });
@@ -152,9 +152,35 @@ const PhasesList: React.FC<PhasesListProps> = ({
       console.error('Error completing phase:', error);
     }
   };
+  
+  // Handle reopening a completed phase
+  const handleReopenPhase = async (phaseId: string) => {
+    try {
+      // Call API to reopen phase
+      await apiService.post(`/admin/projects/${projectId}/phases/${phaseId}/reopen`);
+      
+      // Update UI via refetch
+      if (refetchData) {
+        // Use await to ensure the refetch completes
+        await refetchData();
+        console.log("Phase reopened and data refetched");
+      } else {
+        // Fallback UI update if refetch isn't available
+        const updatedPhases = phases.map(phase => {
+          if (phase.id === phaseId) {
+            return { ...phase, is_active: false, is_completed: false };
+          }
+          return phase;
+        });
+        onPhasesChange(updatedPhases);
+      }
+    } catch (error) {
+      console.error('Error reopening phase:', error);
+    }
+  };
 
   // Handle updating a phase
-  const handleUpdatePhase = async (phaseId: string, data: { name: string; description: string }) => {
+  const handleUpdatePhase = async (phaseId: string, data: { name: string; description: string; estimated_completion_at?: string }) => {
     try {
       console.log(`Updating phase ${phaseId} with data:`, data);
       
@@ -275,6 +301,7 @@ const PhasesList: React.FC<PhasesListProps> = ({
                         projectId={projectId}
                         onSetActive={handleSetPhaseActive}
                         onComplete={handleCompletePhase}
+                        onReopen={handleReopenPhase}
                         onUpdate={handleUpdatePhase}
                         onDelete={handleDeletePhase}
                         refetchData={refetchData}

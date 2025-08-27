@@ -78,7 +78,7 @@ const ProjectSidebar: React.FC<{
     }
     
     if (project.phasesCount === 0) return 0;
-    const completedPhases = project.phases.filter(phase => phase.status === 'completed').length;
+    const completedPhases = project.phases.filter(phase => phase.is_completed).length;
     return Math.round((completedPhases / project.phasesCount) * 100);
   };
   

@@ -135,10 +135,68 @@ const deletePhase = async (phaseId) => {
   }
 };
 
+/**
+ * Mark a phase as complete
+ * @param {number} projectId - The ID of the project
+ * @param {number} phaseId - The ID of the phase to mark as complete
+ * @returns {Promise<boolean>} True if the operation was successful
+ * @throws {Error} If phase not found
+ */
+const setPhaseComplete = async (projectId, phaseId) => {
+  try {
+    // First, get the phase to ensure it exists
+    const phase = await phaseRepository.findPhaseById(phaseId);
+    
+    if (!phase) {
+      throw new Error('Phase not found');
+    }
+    
+    // Ensure the phase belongs to the specified project
+    if (phase.project_id !== projectId) {
+      throw new Error('Phase does not belong to the specified project');
+    }
+    
+    // Mark the phase as complete
+    return await phaseRepository.setPhaseComplete(phaseId);
+  } catch (error) {
+    throw new Error(`Failed to mark phase as complete: ${error.message}`);
+  }
+};
+
+/**
+ * Reopen a completed phase, setting it back to pending status
+ * @param {number} projectId - The ID of the project
+ * @param {number} phaseId - The ID of the phase to reopen
+ * @returns {Promise<boolean>} True if the operation was successful
+ * @throws {Error} If phase not found
+ */
+const reopenPhase = async (projectId, phaseId) => {
+  try {
+    // First, get the phase to ensure it exists
+    const phase = await phaseRepository.findPhaseById(phaseId);
+    
+    if (!phase) {
+      throw new Error('Phase not found');
+    }
+    
+    // Ensure the phase belongs to the specified project
+    if (phase.project_id !== projectId) {
+      throw new Error('Phase does not belong to the specified project');
+    }
+    
+    // Reopen the phase
+    return await phaseRepository.reopenPhase(phaseId);
+  } catch (error) {
+    throw new Error(`Failed to reopen phase: ${error.message}`);
+  }
+};
+
 module.exports = {
   addPhaseToProject,
   setActivePhase,
   reorderPhases,
   updatePhase,
-  deletePhase
+  deletePhase,
+  setPhaseComplete,
+  reopenPhase
 };

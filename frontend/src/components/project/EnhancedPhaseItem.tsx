@@ -14,17 +14,31 @@ export interface Phase {
   id: string;
   name: string;
   description: string;
-  status: 'pending' | 'active' | 'completed';
+  is_active: boolean;
+  is_completed: boolean;
   order: number;
   createdAt?: string; // Optional field for metadata
+  estimated_completion_at?: string; // Optional field for estimated completion date
 }
+
+// Helper function to derive phase status from is_active and is_completed flags
+const getPhaseStatus = (phase: { is_active: boolean; is_completed: boolean }): 'active' | 'completed' | 'pending' => {
+  if (phase.is_completed) {
+    return 'completed';
+  }
+  if (phase.is_active) {
+    return 'active';
+  }
+  return 'pending';
+};
 
 interface EnhancedPhaseItemProps {
   phase: Phase;
   projectId?: string;
   onSetActive?: (id: string) => void;
   onComplete?: (id: string) => void;
-  onUpdate?: (id: string, data: { name: string; description: string }) => void;
+  onReopen?: (id: string) => void;
+  onUpdate?: (id: string, data: { name: string; description: string; estimated_completion_at?: string }) => void;
   onDelete?: (id: string) => void;
   refetchData?: () => Promise<void>;
 }
@@ -34,16 +48,20 @@ const EnhancedPhaseItem: React.FC<EnhancedPhaseItemProps> = ({
   projectId,
   onSetActive, 
   onComplete,
+  onReopen,
   onUpdate,
   onDelete,
   refetchData
 }) => {
-  console.log(`PHASE ITEM RENDERED: id=${phase.id}, name=${phase.name}, status=${phase.status}`);
+  const status = getPhaseStatus(phase);
+  console.log(`PHASE ITEM RENDERED: id=${phase.id}, name=${phase.name}, status=${status}`);
   
   const [isOpen, setIsOpen] = useState(false);
   const [editName, setEditName] = useState(phase.name);
   const [editDescription, setEditDescription] = useState(phase.description);
   const [isEditing, setIsEditing] = useState(false);
+  const [showEstimateInput, setShowEstimateInput] = useState(false);
+  const [estimatedCompletionDate, setEstimatedCompletionDate] = useState(phase.estimated_completion_at || '');
   
   // New handler function for setting a phase as active
   const handleSetActive = async () => {
@@ -70,11 +88,62 @@ const EnhancedPhaseItem: React.FC<EnhancedPhaseItemProps> = ({
     }
   };
   
+  // New handler function for marking a phase as complete
+  const handleSetComplete = async () => {
+    if (!projectId) {
+      console.error('Cannot mark phase as complete: projectId is missing');
+      return;
+    }
+    
+    try {
+      console.log(`Marking phase ${phase.id} as complete for project ${projectId}`);
+      
+      // Make the API request to mark this phase as complete
+      await apiService.post(`/admin/projects/${projectId}/phases/${phase.id}/set-complete`);
+      
+      console.log('Phase marked as complete successfully');
+      
+      // If the parent component provided a refetch function, call it to update the UI
+      if (refetchData) {
+        await refetchData();
+        console.log('Project data refetched after marking phase as complete');
+      }
+    } catch (error) {
+      console.error('Error marking phase as complete:', error);
+    }
+  };
+  
+  // New handler function for reopening a completed phase
+  const handleReopenPhase = async () => {
+    if (!projectId) {
+      console.error('Cannot reopen phase: projectId is missing');
+      return;
+    }
+    
+    try {
+      console.log(`Reopening phase ${phase.id} for project ${projectId}`);
+      
+      // Make the API request to reopen this phase
+      await apiService.post(`/admin/projects/${projectId}/phases/${phase.id}/reopen`);
+      
+      console.log('Phase reopened successfully');
+      
+      // If the parent component provided a refetch function, call it to update the UI
+      if (refetchData) {
+        await refetchData();
+        console.log('Project data refetched after reopening phase');
+      }
+    } catch (error) {
+      console.error('Error reopening phase:', error);
+    }
+  };
+  
   // Track phase prop changes and update local state
   useEffect(() => {
     console.log(`PHASE ITEM: Phase prop changed for id=${phase.id}`);
     setEditName(phase.name);
     setEditDescription(phase.description);
+    setEstimatedCompletionDate(phase.estimated_completion_at || '');
   }, [phase]);
 
   const {
@@ -91,7 +160,7 @@ const EnhancedPhaseItem: React.FC<EnhancedPhaseItemProps> = ({
     transition,
   };
 
-  const getStatusBadgeVariant = (status: Phase['status']) => {
+  const getStatusBadgeVariant = (status: 'pending' | 'active' | 'completed') => {
     switch (status) {
       case 'pending': return 'outline';
       case 'active': return 'default';
@@ -102,7 +171,12 @@ const EnhancedPhaseItem: React.FC<EnhancedPhaseItemProps> = ({
 
   const handleUpdatePhase = () => {
     // Only proceed if the update handler exists and there are actual changes
-    if (onUpdate && (editName !== phase.name || editDescription !== phase.description)) {
+    const hasChanges = 
+      editName !== phase.name || 
+      editDescription !== phase.description || 
+      estimatedCompletionDate !== (phase.estimated_completion_at || '');
+      
+    if (onUpdate && hasChanges) {
       // Ensure we have valid data before sending the update
       if (editName.trim() === '') {
         alert('Phase name cannot be empty');
@@ -111,23 +185,28 @@ const EnhancedPhaseItem: React.FC<EnhancedPhaseItemProps> = ({
       
       console.log(`Updating phase ${phase.id} with:`, {
         name: editName,
-        description: editDescription
+        description: editDescription,
+        estimated_completion_at: estimatedCompletionDate || undefined
       });
       
       // Call the update handler from the parent component
       onUpdate(phase.id, {
         name: editName,
-        description: editDescription
+        description: editDescription,
+        estimated_completion_at: estimatedCompletionDate || undefined
       });
     }
-    // Exit editing mode regardless of whether an update was made
+    // Exit editing mode and hide estimate input
     setIsEditing(false);
+    setShowEstimateInput(false);
   };
 
   const handleCancel = () => {
     setEditName(phase.name);
     setEditDescription(phase.description);
+    setEstimatedCompletionDate(phase.estimated_completion_at || '');
     setIsEditing(false);
+    setShowEstimateInput(false);
   };
 
   // Prevent the collapsible from toggling when clicking on buttons or input fields
@@ -190,8 +269,8 @@ const EnhancedPhaseItem: React.FC<EnhancedPhaseItemProps> = ({
                 <div className="flex-1">
                   <div className="flex flex-wrap gap-2 items-center mb-1">
                     <h3 className="text-base font-medium text-gray-900">{phase.name}</h3>
-                    <Badge variant={getStatusBadgeVariant(phase.status)} className="capitalize">
-                      {phase.status}
+                    <Badge variant={getStatusBadgeVariant(status)} className="capitalize">
+                      {status}
                     </Badge>
                   </div>
                   <p className="text-sm text-gray-500 mb-3 md:mb-0 line-clamp-1">
@@ -204,7 +283,7 @@ const EnhancedPhaseItem: React.FC<EnhancedPhaseItemProps> = ({
               <div className="flex items-center gap-3 mt-3 md:mt-0 w-full md:w-auto">
                 {/* Phase Action Buttons */}
                 <div className="flex flex-wrap gap-2">
-                  {phase.status === 'pending' && (
+                  {status === 'pending' && (
                     <Button 
                       size="sm" 
                       variant="primary" 
@@ -223,20 +302,26 @@ const EnhancedPhaseItem: React.FC<EnhancedPhaseItemProps> = ({
                       Set Active
                     </Button>
                   )}
-                  {phase.status === 'active' && (
+                  {status === 'active' && (
                     <Button 
                       size="sm" 
                       variant="secondary" 
                       onClick={(e) => {
                         e.stopPropagation();
-                        onComplete && onComplete(phase.id);
+                        if (onComplete) {
+                          onComplete(phase.id);
+                        } else if (projectId) {
+                          handleSetComplete();
+                        } else {
+                          console.error('Cannot mark phase as complete: both onComplete and projectId are missing');
+                        }
                       }}
                       leftIcon={<CheckCircle className="w-4 h-4" />}
                     >
-                      Complete
+                      Mark as Complete
                     </Button>
                   )}
-                  {phase.status === 'completed' && (
+                  {status === 'completed' && (
                     <Button 
                       size="sm" 
                       variant="ghost" 
@@ -276,7 +361,86 @@ const EnhancedPhaseItem: React.FC<EnhancedPhaseItemProps> = ({
                   {phase.createdAt && (
                     <div className="flex items-center text-sm text-gray-500">
                       <Calendar className="h-4 w-4 mr-1.5" />
-                      <span>Created: {new Date(phase.createdAt).toLocaleDateString()}</span>
+                      <span>Created on: {new Date(phase.createdAt).toLocaleDateString("en-US", { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                    </div>
+                  )}
+                  
+                  {/* Estimated Completion Date */}
+                  <div className="mt-3">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Estimated Completion Date</h4>
+                    
+                    {showEstimateInput || estimatedCompletionDate ? (
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="date"
+                            value={estimatedCompletionDate}
+                            onChange={(e) => setEstimatedCompletionDate(e.target.value)}
+                            disabled={!isEditing && !showEstimateInput}
+                            className={!isEditing && !showEstimateInput ? "bg-gray-50" : ""}
+                          />
+                          
+                          {!isEditing && showEstimateInput && (
+                            <div className="flex gap-2">
+                              <Button 
+                                size="sm" 
+                                variant="primary" 
+                                onClick={handleUpdatePhase}
+                              >
+                                Save Estimate
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="secondary" 
+                                onClick={() => {
+                                  setEstimatedCompletionDate(phase.estimated_completion_at || '');
+                                  setShowEstimateInput(false);
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {!showEstimateInput && estimatedCompletionDate && !isEditing && (
+                          <div className="flex items-center text-sm text-gray-700">
+                            <Calendar className="h-4 w-4 mr-1.5 text-primary-start" />
+                            <span>Estimated completion: {new Date(estimatedCompletionDate).toLocaleDateString("en-US", { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => setShowEstimateInput(true)}
+                        disabled={isEditing}
+                      >
+                        Add Estimate
+                      </Button>
+                    )}
+                  </div>
+                  
+                  {/* Reopen Button for Completed Phases */}
+                  {status === 'completed' && (
+                    <div className="mt-3">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onReopen) {
+                            onReopen(phase.id);
+                          } else if (projectId) {
+                            handleReopenPhase();
+                          } else {
+                            console.error('Cannot reopen phase: both onReopen and projectId are missing');
+                          }
+                        }}
+                      >
+                        Reopen Phase
+                      </Button>
                     </div>
                   )}
                   

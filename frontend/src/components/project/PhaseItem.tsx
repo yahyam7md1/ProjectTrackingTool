@@ -11,8 +11,20 @@ export interface Phase {
   id: string;
   name: string;
   description: string;
-  status: 'pending' | 'active' | 'completed';
+  is_active: boolean;
+  is_completed: boolean;
   order: number;
+}
+
+// Helper function to derive phase status from is_active and is_completed flags
+const getPhaseStatus = (phase: { is_active: boolean; is_completed: boolean }): 'active' | 'completed' | 'pending' => {
+  if (phase.is_completed) {
+    return 'completed';
+  }
+  if (phase.is_active) {
+    return 'active';
+  }
+  return 'pending';
 }
 
 interface PhaseItemProps {
@@ -24,6 +36,8 @@ interface PhaseItemProps {
 }
 
 const PhaseItem: React.FC<PhaseItemProps> = ({ phase, projectId, onSetActive, onComplete, refetchData }) => {
+  const status = getPhaseStatus(phase);
+  
   const {
     attributes,
     listeners,
@@ -38,7 +52,7 @@ const PhaseItem: React.FC<PhaseItemProps> = ({ phase, projectId, onSetActive, on
     transition,
   };
 
-  const getStatusBadgeVariant = (status: Phase['status']) => {
+  const getStatusBadgeVariant = (status: 'pending' | 'active' | 'completed') => {
     switch (status) {
       case 'pending': return 'outline';
       case 'active': return 'default';
@@ -74,8 +88,8 @@ const PhaseItem: React.FC<PhaseItemProps> = ({ phase, projectId, onSetActive, on
         <div className="flex-1">
           <div className="flex flex-wrap gap-2 items-center mb-1">
             <h3 className="text-base font-medium text-gray-900">{phase.name}</h3>
-            <Badge variant={getStatusBadgeVariant(phase.status)} className="capitalize">
-              {phase.status}
+            <Badge variant={getStatusBadgeVariant(status)} className="capitalize">
+              {status}
             </Badge>
           </div>
           <p className="text-sm text-gray-500 mb-3 md:mb-0">{phase.description}</p>
@@ -84,7 +98,7 @@ const PhaseItem: React.FC<PhaseItemProps> = ({ phase, projectId, onSetActive, on
 
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-2 mt-3 md:mt-0 w-full md:w-auto">
-        {phase.status === 'pending' && (
+        {status === 'pending' && (
           <Button 
             size="sm" 
             variant="primary" 
@@ -108,7 +122,7 @@ const PhaseItem: React.FC<PhaseItemProps> = ({ phase, projectId, onSetActive, on
             Set Active
           </Button>
         )}
-        {phase.status === 'active' && (
+        {status === 'active' && (
           <Button 
             size="sm" 
             variant="secondary" 
@@ -118,7 +132,7 @@ const PhaseItem: React.FC<PhaseItemProps> = ({ phase, projectId, onSetActive, on
             Complete
           </Button>
         )}
-        {phase.status === 'completed' && (
+        {status === 'completed' && (
           <Button 
             size="sm" 
             variant="ghost" 

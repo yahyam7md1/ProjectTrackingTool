@@ -142,7 +142,7 @@ const updatePhase = async (req, res) => {
   try {
     const phaseId = parseInt(req.params.phaseId);
     const projectId = parseInt(req.params.projectId); // for validation purposes
-    const { name, description } = req.body;
+    const { name, description, estimated_completion_at } = req.body;
     
     // Validate required fields
     if (!phaseId) {
@@ -153,7 +153,14 @@ const updatePhase = async (req, res) => {
       return res.status(400).json({ error: 'Phase name is required' });
     }
     
-    const updatedPhase = await phaseService.updatePhase(phaseId, { name, description });
+    const updateData = { name, description };
+    
+    // Add estimated_completion_at field if it exists
+    if (estimated_completion_at !== undefined) {
+      updateData.estimated_completion_at = estimated_completion_at;
+    }
+    
+    const updatedPhase = await phaseService.updatePhase(phaseId, updateData);
     
     // Verify that the phase belongs to the specified project
     if (updatedPhase.project_id !== projectId) {
@@ -219,10 +226,98 @@ const deletePhase = async (req, res) => {
   }
 };
 
+/**
+ * Set a specific phase as completed
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+const setPhaseComplete = async (req, res) => {
+  try {
+    const projectId = parseInt(req.params.projectId);
+    const phaseId = parseInt(req.params.phaseId);
+    
+    // Validate required fields
+    if (!projectId) {
+      return res.status(400).json({ error: 'Project ID is required' });
+    }
+    
+    if (!phaseId) {
+      return res.status(400).json({ error: 'Phase ID is required' });
+    }
+    
+    await phaseService.setPhaseComplete(projectId, phaseId);
+    
+    return res.status(200).json({
+      success: true,
+      message: 'Phase marked as completed successfully'
+    });
+  } catch (error) {
+    console.error('Error marking phase as completed:', error);
+    
+    // Specific error handling for common cases
+    if (error.message.includes('not found')) {
+      return res.status(404).json({ error: error.message });
+    }
+    
+    if (error.message.includes('does not belong')) {
+      return res.status(400).json({ error: error.message });
+    }
+    
+    return res.status(500).json({ 
+      error: error.message || 'Failed to mark phase as complete' 
+    });
+  }
+};
+
+/**
+ * Reopen a completed phase
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+const reopenPhase = async (req, res) => {
+  try {
+    const projectId = parseInt(req.params.projectId);
+    const phaseId = parseInt(req.params.phaseId);
+    
+    // Validate required fields
+    if (!projectId) {
+      return res.status(400).json({ error: 'Project ID is required' });
+    }
+    
+    if (!phaseId) {
+      return res.status(400).json({ error: 'Phase ID is required' });
+    }
+    
+    await phaseService.reopenPhase(projectId, phaseId);
+    
+    return res.status(200).json({
+      success: true,
+      message: 'Phase reopened successfully'
+    });
+  } catch (error) {
+    console.error('Error reopening phase:', error);
+    
+    // Specific error handling for common cases
+    if (error.message.includes('not found')) {
+      return res.status(404).json({ error: error.message });
+    }
+    
+    if (error.message.includes('does not belong')) {
+      return res.status(400).json({ error: error.message });
+    }
+    
+    return res.status(500).json({ 
+      error: error.message || 'Failed to reopen phase' 
+    });
+  }
+};
+
 module.exports = {
   addPhaseToProject,
   setActivePhase,
   reorderPhases,
   updatePhase,
-  deletePhase
+  deletePhase,
+  setPhaseComplete,
+  reopenPhase
 };

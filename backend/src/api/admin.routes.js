@@ -75,6 +75,20 @@ router.post('/projects/:projectId/phases', phaseController.addPhaseToProject);
 router.post('/projects/:projectId/phases/:phaseId/set-active', phaseController.setActivePhase);
 
 /**
+ * @route   POST /projects/:projectId/phases/:phaseId/set-complete
+ * @desc    Mark a phase as complete
+ * @access  Private - Admin only
+ */
+router.post('/projects/:projectId/phases/:phaseId/set-complete', phaseController.setPhaseComplete);
+
+/**
+ * @route   POST /projects/:projectId/phases/:phaseId/reopen
+ * @desc    Reopen a completed phase
+ * @access  Private - Admin only
+ */
+router.post('/projects/:projectId/phases/:phaseId/reopen', phaseController.reopenPhase);
+
+/**
  * @route   PUT /projects/:projectId/phases/reorder
  * @desc    Reorder phases for a project
  * @access  Private - Admin only
