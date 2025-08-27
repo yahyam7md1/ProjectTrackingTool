@@ -241,20 +241,21 @@ const updatePhaseOrder = (orderedPhaseIds) => {
  * @param {Object} data - The update data
  * @param {string} data.name - The new name of the phase
  * @param {string} data.description - The new description of the phase
- * @param {string} [data.estimated_completion_at] - Optional estimated completion date
+ * @param {string|null} [data.estimated_completion_at] - Optional estimated completion date (can be null to clear the date)
  * @returns {Promise<Object>} The updated phase object
  */
 const updatePhase = (phaseId, data) => {
   const { name, description, estimated_completion_at } = data;
   
-  // Determine if we need to update the estimated completion date
-  const hasEstimatedDate = estimated_completion_at !== undefined;
+  // Always include estimated_completion_at in the update, even if it's null
+  // This allows clearing the date when null is explicitly passed
+  const includeEstimatedDate = estimated_completion_at !== undefined;
   
   return new Promise((resolve, reject) => {
     let query;
     let params;
     
-    if (hasEstimatedDate) {
+    if (includeEstimatedDate) {
       query = `
         UPDATE phases 
         SET name = ?, description = ?, estimated_completion_at = ?, updated_at = datetime('now')

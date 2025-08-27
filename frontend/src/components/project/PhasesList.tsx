@@ -180,7 +180,7 @@ const PhasesList: React.FC<PhasesListProps> = ({
   };
 
   // Handle updating a phase
-  const handleUpdatePhase = async (phaseId: string, data: { name: string; description: string; estimated_completion_at?: string }) => {
+  const handleUpdatePhase = async (phaseId: string, data: { name: string; description: string; estimated_completion_at?: string | null }) => {
     try {
       console.log(`Updating phase ${phaseId} with data:`, data);
       

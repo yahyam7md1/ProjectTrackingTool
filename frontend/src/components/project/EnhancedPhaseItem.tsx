@@ -18,7 +18,7 @@ export interface Phase {
   is_completed: boolean;
   order: number;
   createdAt?: string; // Optional field for metadata
-  estimated_completion_at?: string; // Optional field for estimated completion date
+  estimated_completion_at?: string | null; // Optional field for estimated completion date, can be null for cleared dates
 }
 
 // Helper function to derive phase status from is_active and is_completed flags
@@ -38,7 +38,7 @@ interface EnhancedPhaseItemProps {
   onSetActive?: (id: string) => void;
   onComplete?: (id: string) => void;
   onReopen?: (id: string) => void;
-  onUpdate?: (id: string, data: { name: string; description: string; estimated_completion_at?: string }) => void;
+  onUpdate?: (id: string, data: { name: string; description: string; estimated_completion_at?: string | null }) => void;
   onDelete?: (id: string) => void;
   refetchData?: () => Promise<void>;
 }
@@ -379,6 +379,28 @@ const EnhancedPhaseItem: React.FC<EnhancedPhaseItemProps> = ({
                             disabled={!isEditing && !showEstimateInput}
                             className={!isEditing && !showEstimateInput ? "bg-gray-50" : ""}
                           />
+                          
+                          {/* Clear button for removing the date */}
+                          <Button 
+                            size="sm" 
+                            variant="secondary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Set date to null and update the phase
+                              if (onUpdate) {
+                                onUpdate(phase.id, {
+                                  name: editName,
+                                  description: editDescription,
+                                  estimated_completion_at: null
+                                });
+                                // Clear the local state too
+                                setEstimatedCompletionDate('');
+                              }
+                            }}
+                            disabled={!estimatedCompletionDate || (!isEditing && !showEstimateInput)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                           
                           {!isEditing && showEstimateInput && (
                             <div className="flex gap-2">

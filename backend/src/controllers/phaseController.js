@@ -155,7 +155,8 @@ const updatePhase = async (req, res) => {
     
     const updateData = { name, description };
     
-    // Add estimated_completion_at field if it exists
+    // Always include estimated_completion_at if it's provided in the request body, even if null
+    // This allows clearing the date when null is explicitly passed
     if (estimated_completion_at !== undefined) {
       updateData.estimated_completion_at = estimated_completion_at;
     }
