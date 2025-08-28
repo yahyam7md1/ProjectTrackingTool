@@ -1,22 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { PlusIcon, SearchIcon, FilterIcon, Loader2 } from 'lucide-react';
-import {                  <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
-                  
-                  <DropdownMenuItem onClick={() => setStatusFilter('All')}>
-                    All
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setStatusFilter('Active')}>
-                    Active
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setStatusFilter('Completed')}>
-                    Completed
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setStatusFilter('On Hold')}>
-                    On Hold
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setStatusFilter('Canceled')}>
-                    Canceled
-                  </DropdownMenuItem>react-router-dom';
+import { Link } from 'react-router-dom';
 import { Button } from '../../../components/ui/Button';
 import ProjectCard from '../../../components/ui/ProjectCard';
 import CreateProjectModal from '../../../components/ui/CreateProjectModal';
@@ -170,8 +154,8 @@ const AdminDashboard: React.FC = () => {
                   <DropdownMenuItem onClick={() => setStatusFilter('Completed')}>
                     Completed
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setStatusFilter('On Hold')}>
-                    On Hold
+                  <DropdownMenuItem onClick={() => setStatusFilter('Pending')}>
+                    Pending
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setStatusFilter('Canceled')}>
                     Canceled
