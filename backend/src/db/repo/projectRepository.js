@@ -40,19 +40,23 @@ const createProject = (projectData) => {
 };
 
 /**
- * Find all projects with client count
- * @returns {Promise<Array>} Array of project objects with client count
+ * Find all projects with client count, total phases and completed phases count
+ * @returns {Promise<Array>} Array of project objects with counts
  */
 const findAllProjects = () => {
   return new Promise((resolve, reject) => {
     const query = `
       SELECT 
         p.*,
-        COUNT(pc.client_id) as clientCount
+        COUNT(DISTINCT pc.client_id) as clientCount,
+        COUNT(DISTINCT ph.id) as phasesCount,
+        SUM(CASE WHEN ph.is_completed = 1 THEN 1 ELSE 0 END) as phasesCompletedCount
       FROM 
         projects p
       LEFT JOIN 
         project_clients pc ON p.id = pc.project_id
+      LEFT JOIN
+        phases ph ON p.id = ph.project_id
       GROUP BY 
         p.id
       ORDER BY 
@@ -63,6 +67,13 @@ const findAllProjects = () => {
       if (err) {
         return reject(err);
       }
+      
+      // Convert NULL to 0 for counts to ensure we don't have null values
+      projects.forEach(project => {
+        project.phasesCount = project.phasesCount || 0;
+        project.phasesCompletedCount = project.phasesCompletedCount || 0;
+        project.clientCount = project.clientCount || 0;
+      });
       
       resolve(projects);
     });

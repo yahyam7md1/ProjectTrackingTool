@@ -1,14 +1,16 @@
 import React from 'react';
 import { cn } from '../../utils/cn';
+import { motion } from 'framer-motion';
 
 interface ProjectMiniCardProps {
   id: string;
   name: string;
   description: string;
   status: 'active' | 'completed' | 'pending' | 'canceled';
-  progress: number; // 0 to 100
   phasesCount: number;
+  phasesCompletedCount?: number;
   clientsCount: number;
+  progress?: number; // For backward compatibility (0 to 100)
   isSelected: boolean;
   onClick: () => void;
 }
@@ -19,10 +21,15 @@ const ProjectMiniCard: React.FC<ProjectMiniCardProps> = ({
   status,
   progress,
   phasesCount,
+  phasesCompletedCount = 0,
   clientsCount,
   isSelected,
   onClick,
 }) => {
+  // Calculate progress based on phases if phasesCompletedCount is provided
+  const calculatedProgress = phasesCount > 0 
+    ? Math.round((phasesCompletedCount / phasesCount) * 100) 
+    : (progress || 0); // Fall back to provided progress or 0
   return (
     <div
       onClick={onClick}
@@ -54,10 +61,12 @@ const ProjectMiniCard: React.FC<ProjectMiniCardProps> = ({
       
       {/* Progress Bar */}
       <div className="w-full h-1.5 bg-gray-100 rounded-full mb-3">
-        <div 
-          className="h-full bg-primary rounded-full" 
-          style={{ width: `${progress}%` }}
-        ></div>
+        <motion.div 
+          className="h-full bg-primary rounded-full"
+          initial={{ width: 0 }}
+          animate={{ width: `${calculatedProgress}%` }}
+          transition={{ duration: 0.5, ease: "easeInOut" }}
+        ></motion.div>
       </div>
       
       {/* Stats Row */}
@@ -67,7 +76,7 @@ const ProjectMiniCard: React.FC<ProjectMiniCardProps> = ({
             <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            <span>{phasesCount} Phases</span>
+            <span>{phasesCompletedCount}/{phasesCount} Phases</span>
           </span>
           <span className="flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">

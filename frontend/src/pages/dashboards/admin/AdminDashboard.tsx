@@ -15,57 +15,26 @@ import {
 } from '../../../components/ui/DropdownMenu';
 import apiService from '../../../api/apiService';
 import { useAuth } from '../../../context/AuthContext';
+import { useProjects, ProjectType } from '../../../context/ProjectsContext';
 
-// Define project type based on the ProjectCard props
-type ProjectType = {
-  id: string;
-  name: string;
-  description: string;
-  phasesCompleted: number;
-  totalPhases: number;
-  clientCount: number;
-  createdAt: string;
-  status: 'active' | 'completed' | 'pending' | 'canceled';
-};
+// Using ProjectType from context
 
 const AdminDashboard: React.FC = () => {
   const { token } = useAuth();
+  const { projects, loading: isLoading, error, fetchProjects } = useProjects();
   
   // State for managing the CreateProjectModal visibility
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  // State for projects with API data fetching
-  const [projects, setProjects] = useState<ProjectType[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   
   // State for search and filter functionality
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   
-  // Fetch projects from API
+  // Fetch projects on component mount only
   useEffect(() => {
-    const fetchProjects = async () => {
-      setIsLoading(true);
-      setError(null);
-      
-      try {
-        const response = await apiService.get('/admin/projects');
-        if (response.data.success) {
-          setProjects(response.data.projects);
-        } else {
-          setError('Failed to load projects');
-        }
-      } catch (err) {
-        console.error('Error fetching projects:', err);
-        setError('An error occurred while fetching projects. Please try again.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
+    // Initial fetch only when dashboard mounts
     fetchProjects();
-  }, [token]);
+  }, [fetchProjects, token]);
   
   // Filter projects based on search term and status filter
   const filteredProjects = useMemo(() => {
@@ -88,9 +57,6 @@ const AdminDashboard: React.FC = () => {
 
   // Handler for creating a new project
   const handleCreateProject = async (name: string, description: string) => {
-    setIsLoading(true);
-    setError(null);
-    
     try {
       const response = await apiService.post('/admin/projects', {
         name,
@@ -98,18 +64,15 @@ const AdminDashboard: React.FC = () => {
       });
       
       if (response.data.success) {
-        // Add the new project to the current projects list
-        setProjects([response.data.project, ...projects]);
+        // Refresh projects list after creating a new one
+        await fetchProjects();
         // Close the modal after successful creation
         setIsModalOpen(false);
       } else {
-        setError('Failed to create project');
+        console.error('Failed to create project');
       }
     } catch (err) {
       console.error('Error creating project:', err);
-      setError('An error occurred while creating the project. Please try again.');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -119,14 +82,13 @@ const AdminDashboard: React.FC = () => {
       const response = await apiService.delete(`/admin/projects/${id}`);
       
       if (response.data.success) {
-        // Remove the deleted project from the list
-        setProjects(projects.filter(project => project.id !== id));
+        // Refresh projects list after deletion
+        await fetchProjects();
       } else {
-        setError('Failed to delete project');
+        console.error('Failed to delete project');
       }
     } catch (err) {
       console.error('Error deleting project:', err);
-      setError('An error occurred while deleting the project. Please try again.');
     }
   };
 

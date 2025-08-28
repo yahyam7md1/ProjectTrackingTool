@@ -9,6 +9,7 @@ import VerificationCodeClient from "../pages/Auth/client/VerificationCodeClient"
 import TableDemo from "../pages/testPages/TableDemo";
 import AdminDashboard from "../pages/dashboards/admin/AdminDashboard";
 import ManageProjectPage from "../pages/dashboards/admin/ManageProjectPage";
+import { ProjectsProvider } from "../context/ProjectsContext";
 
 const AppRoutes: React.FC = () => {
 	return (
@@ -23,9 +24,17 @@ const AppRoutes: React.FC = () => {
 			{/* Test route for Table component demo */}
 			<Route path="/test/table" element={<TableDemo />} />
 			{/* Admin Dashboard */}
-			<Route path="/admin/dashboard" element={<AdminDashboard />} />
+			<Route path="/admin/dashboard" element={
+				<ProjectsProvider>
+					<AdminDashboard />
+				</ProjectsProvider>
+			} />
 			{/* Project Management */}
-			<Route path="/admin/projects/:projectId?" element={<ManageProjectPage />} />
+			<Route path="/admin/projects/:projectId?" element={
+				<ProjectsProvider>
+					<ManageProjectPage />
+				</ProjectsProvider>
+			} />
 		</Routes>
 	);
 };

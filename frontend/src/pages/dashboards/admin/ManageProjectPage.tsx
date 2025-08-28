@@ -15,6 +15,7 @@ import AddPhasesModal from '../../../components/project/AddPhasesModal';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../../components/ui/Card';
 import { Button } from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
+import { useProjects } from '../../../context/ProjectsContext';
 
 // Define types for our API data
 type ProjectType = {
@@ -22,10 +23,12 @@ type ProjectType = {
   name: string;
   description: string;
   phasesCount: number;
-  clientsCount: number;
+  phasesCompletedCount?: number;
+  clientCount: number;  // Changed from clientsCount to clientCount to match API response
+  clientsCount?: number; // Keep for backward compatibility
   status: 'active' | 'completed' | 'pending' | 'canceled';
-  phases: Phase[];
-  clients: Client[];
+  phases: Phase[] | any[];  // Make compatible with any[] from API
+  clients: Client[] | any[]; // Make compatible with any[] from API
   createdAt?: string;
 };
 
@@ -35,44 +38,29 @@ const ProjectSidebar: React.FC<{
   onSelectProject: (projectId: string) => void;
 }> = ({ selectedProjectId, onSelectProject }) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [projects, setProjects] = useState<ProjectType[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { projects, loading: isLoading, error, fetchProjects } = useProjects();
   
-  // Fetch projects from API
+  // Fetch projects only once on component mount
   useEffect(() => {
-    const fetchProjects = async () => {
-      setIsLoading(true);
-      setError(null);
-      
-      try {
-        const response = await apiService.get('/admin/projects');
-        if (response.data.success) {
-          setProjects(response.data.projects);
-        } else {
-          setError('Failed to load projects');
-        }
-      } catch (err) {
-        console.error('Error fetching projects:', err);
-        setError('Failed to load projects');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
+    // Initial data fetch on component mount only
     fetchProjects();
-  }, []);
+  }, [fetchProjects]); // Include fetchProjects in dependencies to avoid exhaustive-deps warning
 
   // Filter projects based on search query
-  const filteredProjects = projects.filter(project => 
+  const filteredProjects = projects ? projects.filter(project => 
     project.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     project.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  ) : [];
   
   // Calculate project progress based on completed phases
   const calculateProgress = (project: ProjectType): number => {
-    // Guard clause to prevent TypeError when phases array is undefined or not an array
+    // Use phasesCompletedCount if available in the API response
+    if (project.phasesCompletedCount !== undefined && project.phasesCount > 0) {
+      return Math.round((project.phasesCompletedCount / project.phasesCount) * 100);
+    }
+    
+    // Fall back to calculating from phases array if necessary
     if (!project || !project.phases || !Array.isArray(project.phases)) {
       return 0;
     }
@@ -141,10 +129,11 @@ const ProjectSidebar: React.FC<{
                       id={project.id}
                       name={project.name}
                       description={project.description}
-                      status={project.status}
-                      progress={calculateProgress(project)}
+                      status={project.status as 'active' | 'completed' | 'pending' | 'canceled'}
+                      progress={calculateProgress(project as ProjectType)}
                       phasesCount={project.phasesCount}
-                      clientsCount={project.clientsCount}
+                      phasesCompletedCount={project.phasesCompletedCount}
+                      clientsCount={project.clientCount} // Changed from clientsCount to clientCount
                       isSelected={selectedProjectId === project.id}
                       onClick={() => onSelectProject(project.id)}
                     />
@@ -164,6 +153,9 @@ const ManageProjectPage: React.FC = () => {
   const { projectId } = useParams<{ projectId?: string }>();
   const navigate = useNavigate();
   
+  // Access the projects context
+  const { projects, refreshProject, fetchProjects } = useProjects();
+  
   const [project, setProject] = useState<ProjectType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -177,10 +169,11 @@ const ManageProjectPage: React.FC = () => {
     if (!id) {
       // If no projectId is provided, try to get the first project
       try {
-        const response = await apiService.get('/admin/projects');
-        if (response.data.success && response.data.projects.length > 0) {
+        // First try to get projects from context
+        await fetchProjects();
+        if (projects && projects.length > 0) {
           // Redirect to the first project
-          navigate(`/admin/projects/${response.data.projects[0].id}`);
+          navigate(`/admin/projects/${projects[0].id}`);
         } else {
           setError('No projects found. Please create one first.');
           setIsLoading(false);
@@ -198,12 +191,29 @@ const ManageProjectPage: React.FC = () => {
     setError(null);
     
     try {
-      const response = await apiService.get(`/admin/projects/${id}`);
-      if (response.data.success) {
-        // Explicitly create a new object reference to ensure React detects the change
-        setProject({ ...response.data.project });
+      // First try to get the project from the context
+      const contextProject = await refreshProject(id);
+      
+      if (contextProject) {
+        // Use the project from context, ensure phases and clients are arrays
+        setProject({
+          ...contextProject,
+          phases: Array.isArray(contextProject.phases) ? contextProject.phases : [],
+          clients: Array.isArray(contextProject.clients) ? contextProject.clients : []
+        });
       } else {
-        setError('Project not found or could not be loaded');
+        // Fallback to direct API call
+        const response = await apiService.get(`/admin/projects/${id}`);
+        if (response.data.success) {
+          // Explicitly create a new object reference to ensure React detects the change
+          setProject({ 
+            ...response.data.project,
+            phases: Array.isArray(response.data.project.phases) ? response.data.project.phases : [],
+            clients: Array.isArray(response.data.project.clients) ? response.data.project.clients : []
+          });
+        } else {
+          setError('Project not found or could not be loaded');
+        }
       }
     } catch (err: any) {
       console.error('Error fetching project:', err);
@@ -214,53 +224,60 @@ const ManageProjectPage: React.FC = () => {
     }
   };
   
+  // We've already accessed these from the context at the top of the component
+
   // Function for child components to trigger a refresh of project data - now with useCallback for stable identity
   const refetchProjectData = useCallback(async () => {
     if (!projectId) return;
     
     console.log('Refetching project data for ID:', projectId);
     try {
-      // Set loading state (optional, depending on UX needs)
-      // setIsLoading(true);
       setError(null);
       
-      const response = await apiService.get(`/admin/projects/${projectId}`);
-      if (response.data.success) {
-        // Debug: Before state update
-        console.log('MANAGE_PROJECT: Before state update, current project:', project);
-        console.log('MANAGE_PROJECT: New data from server:', response.data.project);
-        
-        // Explicitly create a new object AND new arrays to ensure re-render
+      // First, update the specific project in the context
+      const updatedProject = await refreshProject(projectId);
+      
+      if (updatedProject) {
+        // Update the local state with the updated project
         setProject({ 
-          ...response.data.project,
-          // Ensure phases is a new array reference
-          phases: Array.isArray(response.data.project.phases) 
-            ? [...response.data.project.phases] 
-            : []
+          ...updatedProject,
+          // Ensure phases and clients are proper arrays
+          phases: Array.isArray(updatedProject.phases) ? [...updatedProject.phases] : [],
+          clients: Array.isArray(updatedProject.clients) ? [...updatedProject.clients] : []
         });
-        console.log('Project data refetched successfully:', response.data.project);
+        console.log('Project data refetched successfully:', updatedProject);
         
-        // Debug: Log that state update was triggered
-        console.log('MANAGE_PROJECT: State update triggered with new phases data:', 
-          response.data.project.phases ? 
-          `${response.data.project.phases.length} phases` : 
-          'No phases'
-        );
+        // Also refresh the project list to ensure all views are in sync
+        await fetchProjects();
       } else {
+        // If refreshProject returns null, something went wrong
         setError('Project not found or could not be loaded');
+        
+        // Try to fetch directly as a fallback
+        const response = await apiService.get(`/admin/projects/${projectId}`);
+        if (response.data.success) {
+          setProject({ 
+            ...response.data.project,
+            // Ensure phases and clients are proper arrays
+            phases: Array.isArray(response.data.project.phases) ? [...response.data.project.phases] : [],
+            clients: Array.isArray(response.data.project.clients) ? [...response.data.project.clients] : []
+          });
+          console.log('Project data refetched successfully via fallback:', response.data.project);
+        }
       }
     } catch (err: any) {
       console.error('Error fetching project:', err);
       const errorMessage = err.response?.data?.message || 'Failed to load project';
       setError(errorMessage);
-    } finally {
-      // setIsLoading(false);
     }
-  }, [projectId, project]); // Added project to dependencies to ensure latest reference
+  }, [projectId, refreshProject, fetchProjects]); // Updated dependencies
 
   // Re-fetch project data when projectId changes
   useEffect(() => {
-    fetchProjectData(projectId);
+    // Make sure to bind the fetchProjectData function to the current projects value
+    const fetchWithCurrentContext = () => fetchProjectData(projectId);
+    fetchWithCurrentContext();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, navigate]);
   
   // Debug log to monitor project state changes

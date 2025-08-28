@@ -2,14 +2,18 @@ import React from 'react';
 import { Trash2, Users, Calendar } from 'lucide-react';
 import { Badge } from './Badge';
 import { IconButton } from './IconButton';
+import { motion } from 'framer-motion';
 
 interface ProjectCardProps {
   project: {
     id: string;
     name: string;
     description: string;
-    phasesCompleted: number;
-    totalPhases: number;
+    phasesCompletedCount?: number;
+    phasesCount?: number;
+    // For backward compatibility
+    phasesCompleted?: number;
+    totalPhases?: number;
     clientCount: number;
     createdAt: string;
     status: 'active' | 'completed' | 'pending' | 'canceled';
@@ -32,9 +36,24 @@ const getStatusVariant = (status: string) => {
 };
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, onDelete }) => {
-  const { id, name, description, phasesCompleted, totalPhases, clientCount, createdAt, status } = project;
+  const { 
+    id, 
+    name, 
+    description, 
+    phasesCompletedCount = 0, 
+    phasesCount = 0, 
+    phasesCompleted = 0, 
+    totalPhases = 0, 
+    clientCount, 
+    createdAt, 
+    status 
+  } = project;
   
-  const progressPercentage = totalPhases > 0 ? (phasesCompleted / totalPhases) * 100 : 0;
+  // Use the new fields if available, otherwise fall back to the old fields
+  const completedPhases = phasesCompletedCount !== undefined ? phasesCompletedCount : phasesCompleted;
+  const totalPhasesCount = phasesCount !== undefined ? phasesCount : totalPhases;
+  
+  const progressPercentage = totalPhasesCount > 0 ? (completedPhases / totalPhasesCount) * 100 : 0;
   const formattedDate = new Date(createdAt).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
@@ -62,13 +81,15 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onDelete }) => {
       {/* Progress Bar */}
       <div className="space-y-1">
         <div className="flex justify-between text-sm">
-          <span className="font-medium">{phasesCompleted}/{totalPhases} phases</span>
+          <span className="font-medium">{completedPhases}/{totalPhasesCount} phases</span>
           <span className="text-gray-500">{progressPercentage.toFixed(0)}%</span>
         </div>
         <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-          <div 
+          <motion.div 
             className="h-full bg-primary rounded-full"
-            style={{ width: `${progressPercentage}%` }}
+            initial={{ width: 0 }}
+            animate={{ width: `${progressPercentage}%` }}
+            transition={{ duration: 0.5, ease: "easeInOut" }}
           />
         </div>
       </div>
