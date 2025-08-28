@@ -25,6 +25,16 @@ const db = new sqlite3.Database(dbPath, (err) => {
   }
   
   console.log('Successfully connected to the SQLite database.');
+
+  db.exec('PRAGMA foreign_keys = ON;', (err) => {
+    if (err) {
+      console.error("Failed to enable foreign key enforcement:", err);
+    } else {
+      console.log("Foreign key enforcement is ON.");
+    }
+  });
+
+
 });
 
 // Export the database connection
