@@ -1,12 +1,30 @@
 import React from 'react';
 import { cn } from '../../utils/cn';
 import { motion } from 'framer-motion';
+import { Badge } from '../ui/Badge';
+
+// Helper function to determine badge variant
+const getStatusVariant = (status: string) => {
+  switch (status?.toLowerCase()) {
+    case 'active':
+      return 'success';
+    case 'completed':
+      return 'default';
+    case 'canceled':
+      return 'destructive';
+    case 'on hold':
+      return 'warning';
+    case 'pending':
+    default:
+      return 'outline';
+  }
+};
 
 interface ProjectMiniCardProps {
   id: string;
   name: string;
   description: string;
-  status: 'active' | 'completed' | 'pending' | 'canceled';
+  status: 'active' | 'completed' | 'pending' | 'on hold' | 'canceled';
   phasesCount: number;
   phasesCompletedCount?: number;
   clientsCount: number;
@@ -85,7 +103,7 @@ const ProjectMiniCard: React.FC<ProjectMiniCardProps> = ({
             <span>{clientsCount} Clients</span>
           </span>
         </div>
-        <span className="capitalize text-xs px-2 py-0.5 bg-gray-100 rounded-full">{status}</span>
+        <Badge variant={getStatusVariant(status)} className="capitalize">{status}</Badge>
       </div>
     </div>
   );

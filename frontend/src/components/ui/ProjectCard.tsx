@@ -22,13 +22,15 @@ interface ProjectCardProps {
 }
 
 const getStatusVariant = (status: string) => {
-  switch (status) {
+  switch (status?.toLowerCase()) {
     case 'active':
       return 'success';
     case 'completed':
       return 'default';
     case 'canceled':
       return 'destructive';
+    case 'on hold':
+      return 'warning';
     case 'pending':
     default:
       return 'outline';

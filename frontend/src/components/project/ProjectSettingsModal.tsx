@@ -1,13 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
-import { X, AlertTriangle } from 'lucide-react';
+import * as SelectPrimitive from '@radix-ui/react-select';
+import { X, AlertTriangle, Check, ChevronDown } from 'lucide-react';
 import { Button } from '../ui/Button';
 import Input from '../ui/Input';
+import Label from '../ui/Label';
 
 export interface ProjectSettings {
   name: string;
   description: string;
+  status?: string;
+}
+
+interface Project {
+  id: string;
+  name: string;
+  description: string;
+  status: string;
+  created_at?: string;
+  createdAt?: string;
 }
 
 interface ProjectSettingsModalProps {
@@ -15,6 +27,7 @@ interface ProjectSettingsModalProps {
   onClose: () => void;
   projectId: string;
   initialSettings: ProjectSettings;
+  project?: Project;
   onSave: (settings: ProjectSettings) => void;
   onDelete: () => void;
 }
@@ -24,16 +37,37 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
   onClose,
   projectId,
   initialSettings,
+  project,
   onSave,
   onDelete,
 }) => {
-  const [settings, setSettings] = useState<ProjectSettings>(initialSettings);
+  const [settings, setSettings] = useState<ProjectSettings>({
+    ...initialSettings,
+    status: initialSettings.status || 'Active'
+  });
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  
+  // Format created date
+  const formatCreatedDate = () => {
+    if (!project) return '';
+    
+    const dateString = project.created_at || project.createdAt || '';
+    if (!dateString) return '';
+    
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
   
   // Reset form when the modal opens with new data
   useEffect(() => {
     if (isOpen) {
-      setSettings(initialSettings);
+      setSettings({
+        ...initialSettings,
+        status: initialSettings.status || 'Active'
+      });
     }
   }, [isOpen, initialSettings]);
 
@@ -65,6 +99,15 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
 
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
+                {/* Project metadata section */}
+                {project && (
+                  <div className="mb-4 p-3 bg-gray-50 rounded-md border border-gray-100">
+                    <p className="text-sm text-gray-600">
+                      Project Created: {formatCreatedDate()}
+                    </p>
+                  </div>
+                )}
+
                 <div className="space-y-1">
                   <label htmlFor="name" className="text-sm font-medium text-gray-700">
                     Project Name
@@ -91,6 +134,52 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                     rows={4}
                     className="w-full rounded-md border border-gray-300 px-3 py-2 placeholder:text-gray-400 bg-white text-text-primary shadow-sm transition focus:outline-none focus:ring-2 focus:ring-primary/80 focus:border-transparent"
                   />
+                </div>
+                
+                {/* Status Dropdown */}
+                <div className="space-y-1">
+                  <label htmlFor="status" className="text-sm font-medium text-gray-700">
+                    Project Status
+                  </label>
+                  <div className="relative">
+                    <SelectPrimitive.Root 
+                      value={settings.status} 
+                      onValueChange={(value) => setSettings(prev => ({ ...prev, status: value }))}
+                    >
+                      <SelectPrimitive.Trigger 
+                        className="w-full flex items-center justify-between rounded-md border border-gray-300 px-3 py-2 text-left bg-white text-text-primary shadow-sm transition focus:outline-none focus:ring-2 focus:ring-primary/80 focus:border-transparent"
+                        aria-label="Project Status"
+                      >
+                        <SelectPrimitive.Value />
+                        <SelectPrimitive.Icon>
+                          <ChevronDown className="h-4 w-4 opacity-50" />
+                        </SelectPrimitive.Icon>
+                      </SelectPrimitive.Trigger>
+                      
+                      <SelectPrimitive.Portal>
+                        <SelectPrimitive.Content 
+                          className="overflow-hidden z-50 bg-white rounded-md shadow-lg border border-gray-200"
+                          position="popper"
+                          sideOffset={5}
+                        >
+                          <SelectPrimitive.Viewport className="p-1">
+                            {["Active", "Completed", "On Hold", "Canceled"].map((status) => (
+                              <SelectPrimitive.Item
+                                key={status}
+                                value={status}
+                                className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-gray-100 focus:text-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[state=checked]:bg-primary/10"
+                              >
+                                <SelectPrimitive.ItemText>{status}</SelectPrimitive.ItemText>
+                                <SelectPrimitive.ItemIndicator className="absolute right-2">
+                                  <Check className="h-4 w-4" />
+                                </SelectPrimitive.ItemIndicator>
+                              </SelectPrimitive.Item>
+                            ))}
+                          </SelectPrimitive.Viewport>
+                        </SelectPrimitive.Content>
+                      </SelectPrimitive.Portal>
+                    </SelectPrimitive.Root>
+                  </div>
                 </div>
               </div>
 

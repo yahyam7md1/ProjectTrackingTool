@@ -384,7 +384,7 @@ const ManageProjectPage: React.FC = () => {
   };
 
   // Handle project settings update
-  const handleUpdateProjectSettings = async (settings: { name: string; description: string }) => {
+  const handleUpdateProjectSettings = async (settings: { name: string; description: string; status?: string }) => {
     if (!project) return;
     
     try {
@@ -692,9 +692,11 @@ const ManageProjectPage: React.FC = () => {
           isOpen={isSettingsModalOpen}
           onClose={() => setIsSettingsModalOpen(false)}
           projectId={project.id}
+          project={project}
           initialSettings={{
             name: project.name,
-            description: project.description
+            description: project.description,
+            status: project.status
           }}
           onSave={handleUpdateProjectSettings}
           onDelete={handleDeleteProject}

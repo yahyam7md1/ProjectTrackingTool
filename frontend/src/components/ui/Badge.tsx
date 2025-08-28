@@ -19,6 +19,10 @@ const badgeVariants = cva(
         // Destructive: light red background with clear dark red text
         destructive:
           'bg-error/20 text-error border-transparent shadow-sm',
+          
+        // Warning: light yellow background with readable dark text
+        warning:
+          'bg-yellow-100 text-yellow-800 border-transparent shadow-sm',
 
         // Outline: subtle border and neutral text
         outline: 'bg-transparent border-text-secondary text-text-primary',
