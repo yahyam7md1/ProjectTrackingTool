@@ -102,15 +102,18 @@ const PhaseItem: React.FC<PhaseItemProps> = ({ phase, projectId, onSetActive, on
           <Button 
             size="sm" 
             variant="primary" 
-            onClick={async () => {
+            onClick={() => {
               if (onSetActive) {
+                // Call the smart handler in the parent component
                 onSetActive(phase.id);
               } else if (projectId) {
+                // This is a fallback that should rarely be used
+                // since we've implemented the smart handler in the parent
                 try {
-                  await apiService.post(`/admin/projects/${projectId}/phases/${phase.id}/set-active`);
+                  apiService.post(`/admin/projects/${projectId}/phases/${phase.id}/set-active`);
                   
                   if (refetchData) {
-                    await refetchData();
+                    refetchData();
                     console.log("Phase set as active and data refetched");
                   }
                 } catch (error) {

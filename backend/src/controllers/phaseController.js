@@ -41,7 +41,7 @@ const addPhaseToProject = async (req, res) => {
 };
 
 /**
- * Set a specific phase as active and mark previous phases as completed
+ * Set a specific phase as active and mark only the currently active phase as completed
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */

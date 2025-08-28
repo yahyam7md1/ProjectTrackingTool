@@ -32,7 +32,7 @@ const addPhaseToProject = async (phaseData) => {
 };
 
 /**
- * Set a specific phase as active and mark previous phases as completed
+ * Set a specific phase as active and mark only the currently active phase as completed
  * @param {number} projectId - The ID of the project
  * @param {number} phaseId - The ID of the phase to set as active
  * @returns {Promise<boolean>} True if the operation was successful

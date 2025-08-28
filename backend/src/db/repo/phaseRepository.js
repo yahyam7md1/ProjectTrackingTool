@@ -107,7 +107,7 @@ const findPhasesByProjectId = (projectId) => {
 };
 
 /**
- * Set a specific phase as active and mark previous phases as completed
+ * Set a specific phase as active and mark only the currently active phase as completed
  * @param {number} projectId - The ID of the project
  * @param {number} phaseId - The ID of the phase to set as active
  * @param {number} phaseOrder - The order of the phase to set as active
@@ -123,16 +123,16 @@ const setActivePhase = (projectId, phaseId, phaseOrder) => {
         }
         
         try {
-          // Step 1: Mark all previous phases as completed and not active
+          // Step 1: Mark only the currently active phase as completed
           db.run(
             `UPDATE phases 
              SET is_completed = 1, is_active = 0 
-             WHERE project_id = ? AND phase_order < ?`,
-            [projectId, phaseOrder],
+             WHERE project_id = ? AND is_active = 1`,
+            [projectId],
             (err) => {
               if (err) throw err;
               
-              // Step 2: Reset active status for all phases in the project
+              // Step 2: Reset active status for all phases in the project (redundant but keeping for safety)
               db.run(
                 `UPDATE phases 
                  SET is_active = 0 
