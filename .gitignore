@@ -10,6 +10,8 @@ npm-debug.log
 
 # SQLite Database file
 /backend/database.db
+# SQLite temporary files
+*.db-journal
 
 # IDE & OS files
 .DS_Store

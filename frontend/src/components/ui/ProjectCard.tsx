@@ -3,6 +3,7 @@ import { Trash2, Users, Calendar } from 'lucide-react';
 import { Badge } from './Badge';
 import { IconButton } from './IconButton';
 import { motion } from 'framer-motion';
+import { parseISO, format } from 'date-fns';
 
 interface ProjectCardProps {
   project: {
@@ -56,11 +57,43 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onDelete }) => {
   const totalPhasesCount = phasesCount !== undefined ? phasesCount : totalPhases;
   
   const progressPercentage = totalPhasesCount > 0 ? (completedPhases / totalPhasesCount) * 100 : 0;
-  const formattedDate = new Date(createdAt).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
+  
+  let formattedDate = 'N/A';
+  if (createdAt) {
+    try {
+      console.log('Original createdAt:', createdAt);
+      
+      // Handle different date formats that might come from SQLite
+      // SQLite typically returns "YYYY-MM-DD HH:MM:SS" format
+      let dateObject;
+      
+      if (createdAt.includes('T')) {
+        // It's already in ISO format
+        dateObject = parseISO(createdAt);
+      } else if (createdAt.includes(' ')) {
+        // SQLite format with space between date and time
+        dateObject = parseISO(createdAt.replace(' ', 'T'));
+      } else {
+        // Plain date string
+        dateObject = new Date(createdAt);
+      }
+      
+      // Check if date is valid before formatting
+      if (isNaN(dateObject.getTime())) {
+        console.error('Invalid date object created from:', createdAt);
+        formattedDate = 'Invalid Date';
+      } else {
+        formattedDate = format(dateObject, 'yyyy/MM/dd');
+        console.log('Formatted date:', formattedDate);
+      }
+    } catch (error) {
+      console.error('Error formatting date:', error, 'for input:', createdAt);
+      formattedDate = 'Invalid Date';
+    }
+  } else {
+    console.log('No createdAt value provided');
+    console.log('Project data:', project);
+  }
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-primary/20 hover:border-primary transition-colors p-4 space-y-4">

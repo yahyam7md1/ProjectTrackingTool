@@ -41,6 +41,24 @@ export const ProjectsProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   
+  // Helper function to convert snake_case to camelCase in objects
+  const camelCaseKeys = (obj: any): any => {
+    if (Array.isArray(obj)) {
+      return obj.map(item => camelCaseKeys(item));
+    }
+    
+    if (obj !== null && typeof obj === 'object') {
+      return Object.keys(obj).reduce((result, key) => {
+        // Convert key from snake_case to camelCase
+        const camelKey = key.replace(/_([a-z])/g, (match, p1) => p1.toUpperCase());
+        result[camelKey] = camelCaseKeys(obj[key]);
+        return result;
+      }, {} as any);
+    }
+    
+    return obj;
+  };
+
   // Function to fetch all projects
   const fetchProjects = useCallback(async () => {
     setLoading(true);
@@ -49,7 +67,10 @@ export const ProjectsProvider: React.FC<{ children: ReactNode }> = ({ children }
     try {
       const response = await apiService.get('/admin/projects');
       if (response.data.success) {
-        setProjects(response.data.projects);
+        // Convert snake_case keys to camelCase
+        const camelCaseProjects = camelCaseKeys(response.data.projects);
+        console.log('Projects after conversion:', camelCaseProjects);
+        setProjects(camelCaseProjects);
       } else {
         setError('Failed to load projects');
       }
