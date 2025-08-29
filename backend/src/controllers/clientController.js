@@ -44,18 +44,19 @@ const assignClientToProject = async (req, res) => {
 const removeClientFromProject = async (req, res) => {
   try {
     const projectId = parseInt(req.params.projectId);
-    const { email } = req.body;
+    const clientId = parseInt(req.params.clientId);
+
     
     // Validate required fields
     if (!projectId) {
       return res.status(400).json({ error: 'Project ID is required' });
     }
     
-    if (!email) {
-      return res.status(400).json({ error: 'Client email is required' });
+    if (!clientId) {
+      return res.status(400).json({ error: 'Client ID is required' });
     }
     
-    await clientService.removeClient(projectId, email);
+    await clientService.removeClient(projectId, clientId);
     
     // Return 204 No Content as specified
     return res.status(204).end();

@@ -125,6 +125,6 @@ router.post('/projects/:projectId/clients', clientController.assignClientToProje
  * @desc    Remove a client from a project
  * @access  Private - Admin only
  */
-router.delete('/projects/:projectId/clients', clientController.removeClientFromProject);
+router.delete('/projects/:projectId/clients/:clientId', clientController.removeClientFromProject);
 
 module.exports = router;

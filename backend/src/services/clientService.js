@@ -31,21 +31,13 @@ const assignClient = async (projectId, email) => {
 /**
  * Remove a client from a project
  * @param {number} projectId - The ID of the project
- * @param {string} email - The email of the client
+ * @param {string} clientId - The ID of the client
  * @returns {Promise<boolean>} True if the client was successfully removed
  */
-const removeClient = async (projectId, email) => {
+const removeClient = async (projectId, clientId) => {
   try {
-    // First, find the client by email
-    const client = await clientRepository.findClientByEmail(email);
-    
-    // If the client exists, remove them from the project
-    if (client) {
-      return await clientRepository.removeClientFromProject(projectId, client.id);
-    }
-    
-    // If client doesn't exist, there's nothing to remove (success by default)
-    return true;
+    // Remove client directly without checking if it exists first
+    return await clientRepository.removeClientFromProject(projectId, clientId);
   } catch (error) {
     throw new Error(`Failed to remove client from project: ${error.message}`);
   }
