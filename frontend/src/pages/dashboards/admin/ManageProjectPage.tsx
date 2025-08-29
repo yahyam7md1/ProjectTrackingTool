@@ -511,13 +511,12 @@ const ManageProjectPage: React.FC = () => {
                   {/* Project Header */}
                   <div className="flex flex-col mb-6">
                     <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center">
-                        <Settings className="h-6 w-6 text-primary mr-2" />
+                      <div className="flex items-center pl-8">
                         <h1 className="text-2xl font-bold">{project.name}</h1>
                       </div>
                       <button
                         onClick={() => setIsSettingsModalOpen(true)}
-                        className="p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
+                        className="p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600 bg-white"
                         aria-label="Project settings"
                       >
                         <Settings className="h-5 w-5" />
