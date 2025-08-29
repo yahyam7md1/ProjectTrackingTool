@@ -5,6 +5,7 @@ import * as Collapsible from '@radix-ui/react-collapsible';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GripVertical, CheckCircle, ChevronDown, ChevronUp, Trash2, Calendar } from 'lucide-react';
 import { Badge } from '../ui/Badge';
+import * as AlertDialog from '@radix-ui/react-alert-dialog';
 import { Button } from '../ui/Button';
 import Input from '../ui/Input';
 import { cn } from '../../utils/cn';
@@ -526,21 +527,48 @@ const EnhancedPhaseItem: React.FC<EnhancedPhaseItemProps> = ({
                         </Button>
                       )}
                       
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        leftIcon={<Trash2 className="h-4 w-4" />}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          // Add confirmation dialog
-                          if (window.confirm(`Are you sure you want to delete the phase "${phase.name}"?`)) {
-                            console.log(`Deleting phase ${phase.id}: ${phase.name}`);
-                            onDelete && onDelete(phase.id);
-                          }
-                        }}
-                      >
-                        Delete
-                      </Button>
+                      <AlertDialog.Root>
+                        <AlertDialog.Trigger asChild>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            leftIcon={<Trash2 className="h-4 w-4" />}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            Delete
+                          </Button>
+                        </AlertDialog.Trigger>
+                        <AlertDialog.Portal>
+                          <AlertDialog.Overlay className="fixed inset-0 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+                          <AlertDialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white p-6 rounded-lg shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-top-[2%] data-[state=open]:slide-in-from-top-[2%]">
+                            <AlertDialog.Title className="text-lg font-semibold text-gray-900 mb-2">
+                              Delete Phase
+                            </AlertDialog.Title>
+                            <AlertDialog.Description className="text-sm text-gray-600 mb-5">
+                              Are you sure you want to delete the phase "{phase.name}"? This action cannot be undone and all associated data will be lost.
+                            </AlertDialog.Description>
+                            <div className="flex justify-end gap-3">
+                              <AlertDialog.Cancel asChild>
+                                <Button variant="ghost" size="sm">
+                                  Cancel
+                                </Button>
+                              </AlertDialog.Cancel>
+                              <AlertDialog.Action asChild>
+                                <Button 
+                                  variant="destructive" 
+                                  size="sm"
+                                  onClick={() => {
+                                    console.log(`Deleting phase ${phase.id}: ${phase.name}`);
+                                    onDelete && onDelete(phase.id);
+                                  }}
+                                >
+                                  Delete
+                                </Button>
+                              </AlertDialog.Action>
+                            </div>
+                          </AlertDialog.Content>
+                        </AlertDialog.Portal>
+                      </AlertDialog.Root>
                     </div>
                   </div>
                 </div>
