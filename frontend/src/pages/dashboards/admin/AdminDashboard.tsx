@@ -183,7 +183,7 @@ const AdminDashboard: React.FC = () => {
                   project={project}
                   onDelete={(id) => {
                     // Prevent navigation when clicking delete button
-                    handleDeleteProject(id);
+                    // handleDeleteProject(id); //commneted out for now because i dont like the button 
                   }}
                 />
               </Link>
