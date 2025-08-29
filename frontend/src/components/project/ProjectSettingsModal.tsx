@@ -6,6 +6,7 @@ import { X, AlertTriangle, Check, ChevronDown } from 'lucide-react';
 import { Button } from '../ui/Button';
 import Input from '../ui/Input';
 import Label from '../ui/Label';
+import { Trash2 } from 'lucide-react';
 
 export interface ProjectSettings {
   name: string;
@@ -192,9 +193,10 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                 <Button
                   type="button"
                   variant="destructive"
+                  leftIcon={<Trash2 className="h-4 w-4" />}
                   onClick={() => setIsDeleteDialogOpen(true)}
                 >
-                  Delete Project
+                  Delete
                 </Button>
               </div>
 
@@ -252,7 +254,7 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                     onClose();
                   }}
                 >
-                  Delete Project
+                  Delete
                 </Button>
               </AlertDialog.Action>
             </div>
