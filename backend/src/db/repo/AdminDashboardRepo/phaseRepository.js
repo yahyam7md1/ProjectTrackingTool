@@ -3,7 +3,7 @@
  * Contains functions for accessing and manipulating phase data in the database
  */
 
-const db = require('../database');
+const db = require('../../database');
 
 /**
  * Create a new phase

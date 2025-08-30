@@ -3,7 +3,7 @@
  * Contains functions for accessing and manipulating client data in the database
  */
 
-const db = require('../database');
+const db = require('../../database');
 
 /**
  * Find a client by email
