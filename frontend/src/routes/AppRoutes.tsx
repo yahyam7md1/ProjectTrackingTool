@@ -6,7 +6,6 @@ import AdminLogin from "../pages/Auth/admin/AdminLogin";
 import AdminSignupCode from "../pages/Auth/admin/AdminSignupCode";
 import ClientLogin from "../pages/Auth/client/ClientLogin";
 import VerificationCodeClient from "../pages/Auth/client/VerificationCodeClient";
-import TableDemo from "../pages/testPages/TableDemo";
 import AdminDashboard from "../pages/dashboards/admin/AdminDashboard";
 import ManageProjectPage from "../pages/dashboards/admin/ManageProjectPage";
 import { ProjectsProvider } from "../context/ProjectsContext";
@@ -22,7 +21,7 @@ const AppRoutes: React.FC = () => {
 				<Route path="/client/verify" element={<VerificationCodeClient />} />
 			</Route>
 			{/* Test route for Table component demo */}
-			<Route path="/test/table" element={<TableDemo />} />
+			
 			{/* Admin Dashboard */}
 			<Route path="/admin/dashboard" element={
 				<ProjectsProvider>

@@ -4,7 +4,7 @@
  */
 
 const phaseService = require('../services/phaseService');
-const phaseRepository = require('../db/repo/phaseRepository');
+const phaseRepository = require('../../db/repo/phaseRepository');
 
 /**
  * Add a new phase to a project

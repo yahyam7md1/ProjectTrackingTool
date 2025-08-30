@@ -4,9 +4,9 @@
  */
 
 const express = require('express');
-const { verifyAdminJWT } = require('../middleware/authMiddleware');
-const projectController = require('../controllers/projectController');
-const phaseController = require('../controllers/phaseController');
+const { verifyAdminJWT } = require('../../middleware/authMiddleware');
+const projectController = require('../../controllers/AdminDashboardController/projectController');
+const phaseController = require('../../controllers/AdminDashboardController/phaseController');
 const clientController = require('../controllers/clientController');
 
 const router = express.Router();

@@ -3,7 +3,7 @@
  * Emergency fallback to create projects when req.body parsing fails
  */
 
-const projectService = require('../services/projectService');
+const projectService = require('../services/AdminDashboardService/projectService');
 
 /**
  * Create a default project with hardcoded values

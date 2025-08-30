@@ -3,9 +3,9 @@
  * Provides business logic for project operations
  */
 
-const projectRepository = require('../db/repo/projectRepository');
-const phaseRepository = require('../db/repo/phaseRepository');
-const clientRepository = require('../db/repo/clientRepository');
+const projectRepository = require('../../db/repo/projectRepository');
+const phaseRepository = require('../../db/repo/phaseRepository');
+const clientRepository = require('../../db/repo/clientRepository');
 
 /**
  * Create a new project

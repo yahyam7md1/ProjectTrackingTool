@@ -3,8 +3,8 @@
  * Handles the HTTP request/response cycle for project operations
  */
 
-const projectService = require('../services/projectService');
-const { createDefaultProject } = require('../utils/directProjectCreator');
+const projectService = require('../../services/AdminDashboardService/projectService');
+const { createDefaultProject } = require('../../utils/directProjectCreator');
 
 /**
  * @function createProject

@@ -10,8 +10,8 @@ const {
   findAdminVerificationCode,
   verifyAdmin,
   markAdminCodeAsUsed
-} = require('../db/repo/authRepository');
-const { sendVerificationEmail } = require('../utils/emailService');
+} = require('../../db/repo/authRepository');
+const { sendVerificationEmail } = require('../../utils/emailService');
 
 // Get JWT secret from environment variables
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_should_be_in_env';
@@ -86,8 +86,8 @@ const loginAdminService = async (email, password) => {
 const requestClientCodeService = async (email) => {
   try {
     // Import required dependencies
-    const { findClientByEmail, createClientVerificationCode } = require('../db/repo/authRepository');
-    const { sendVerificationEmail } = require('../utils/emailService');
+    const { findClientByEmail, createClientVerificationCode } = require('../../db/repo/authRepository');
+    const { sendVerificationEmail } = require('../../utils/emailService');
     
     // Step 1: Find the client by email
     const client = await findClientByEmail(email);
@@ -128,7 +128,7 @@ const requestClientCodeService = async (email) => {
 const verifyClientCodeService = async (email, code) => {
   try {
     // Import required dependencies
-    const { findClientByEmail, findVerificationCode, markCodeAsUsed } = require('../db/repo/authRepository');
+    const { findClientByEmail, findVerificationCode, markCodeAsUsed } = require('../../db/repo/authRepository');
     const jwt = require('jsonwebtoken');
     
     // Step 1: Find the client by email
@@ -205,8 +205,8 @@ const signupAdminService = async (userData) => {
     
     // Import required dependencies
     const bcrypt = require('bcrypt');
-    const { findAdminByEmail, createAdmin, createAdminVerificationCode } = require('../db/repo/authRepository');
-    const { sendVerificationEmail } = require('../utils/emailService');
+    const { findAdminByEmail, createAdmin, createAdminVerificationCode } = require('../../db/repo/authRepository');
+    const { sendVerificationEmail } = require('../../utils/emailService');
     
     // Step 1: Check for existing user
     const existingAdmin = await findAdminByEmail(email);

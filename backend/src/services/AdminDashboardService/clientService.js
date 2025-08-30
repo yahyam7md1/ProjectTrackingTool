@@ -3,7 +3,7 @@
  * Provides business logic for client operations
  */
 
-const clientRepository = require('../db/repo/clientRepository');
+const clientRepository = require('../../db/repo/clientRepository');
 
 /**
  * Assign a client to a project
