@@ -9,7 +9,7 @@ const {
   verifyClientCodeService,
   signupAdminService,
   verifyAdminAccountService
-} = require('../services/authService');
+} = require('../../services/Auth/authService');
 
 /**
  * @function adminLogin

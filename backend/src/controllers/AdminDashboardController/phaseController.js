@@ -3,8 +3,8 @@
  * Handles HTTP requests related to project phases
  */
 
-const phaseService = require('../services/phaseService');
-const phaseRepository = require('../../db/repo/phaseRepository');
+const phaseService = require('../../services/AdminDashboardService/phaseService');
+const phaseRepository = require('../../db/repo/AdminDashboardRepo/phaseRepository');
 
 /**
  * Add a new phase to a project

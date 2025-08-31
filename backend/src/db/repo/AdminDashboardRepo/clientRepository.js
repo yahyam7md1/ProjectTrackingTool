@@ -125,10 +125,61 @@ const findClientsByProjectId = (projectId) => {
   });
 };
 
+/**
+ * Find project IDs associated with a specific client
+ * @param {number} clientId - The ID of the client
+ * @returns {Promise<Array>} Array of project IDs
+ */
+const findProjectIdsByClientId = (clientId) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+      SELECT project_id 
+      FROM project_clients 
+      WHERE client_id = ?
+    `;
+    
+    db.all(query, [clientId], (err, rows) => {
+      if (err) {
+        return reject(err);
+      }
+      
+      // Extract project IDs from the result rows
+      const projectIds = rows.map(row => row.project_id);
+      resolve(projectIds);
+    });
+  });
+};
+
+/**
+ * Check if a client is assigned to a specific project
+ * @param {number} clientId - The ID of the client
+ * @param {number} projectId - The ID of the project
+ * @returns {Promise<boolean>} True if client is assigned to project, false otherwise
+ */
+const isClientAssignedToProject = (clientId, projectId) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+      SELECT COUNT(*) as count 
+      FROM project_clients 
+      WHERE client_id = ? AND project_id = ?
+    `;
+    
+    db.get(query, [clientId, projectId], (err, result) => {
+      if (err) {
+        return reject(err);
+      }
+      
+      resolve(result && result.count > 0);
+    });
+  });
+};
+
 module.exports = {
   findClientByEmail,
   createClient,
   assignClientToProject,
   removeClientFromProject,
-  findClientsByProjectId
+  findClientsByProjectId,
+  findProjectIdsByClientId,
+  isClientAssignedToProject
 };

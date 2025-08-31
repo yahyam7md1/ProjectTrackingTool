@@ -3,7 +3,7 @@
  * Provides business logic for phase operations
  */
 
-const phaseRepository = require('../db/repo/phaseRepository');
+const phaseRepository = require('../../db/repo/AdminDashboardRepo/phaseRepository');
 
 /**
  * Add a new phase to a project

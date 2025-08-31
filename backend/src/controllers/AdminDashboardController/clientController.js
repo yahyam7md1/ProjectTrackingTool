@@ -3,7 +3,7 @@
  * Handles HTTP requests related to project client assignments
  */
 
-const clientService = require('../services/dashboardService/clientService');
+const clientService = require('../../services/AdminDashboardService/clientService');
 
 /**
  * Assign a client to a project

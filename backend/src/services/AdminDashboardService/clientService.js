@@ -4,6 +4,8 @@
  */
 
 const clientRepository = require('../../db/repo/AdminDashboardRepo/clientRepository');
+const projectRepository = require('../../db/repo/AdminDashboardRepo/projectRepository');
+const emailService = require('../../utils/emailService');
 
 /**
  * Assign a client to a project
@@ -20,9 +22,19 @@ const assignClient = async (projectId, email) => {
     if (!client) {
       client = await clientRepository.createClient(email);
     }
-    
+
     // Now assign the client to the project
-    return await clientRepository.assignClientToProject(projectId, client.id);
+    const assigned = await clientRepository.assignClientToProject(projectId, client.id);
+    
+    if (assigned) {
+      // Get project details to include in the email
+      const project = await projectRepository.findProjectById(projectId);
+      
+      // Send email notification
+      await emailService.sendProjectAssignmentNotification(email, project.name);
+    }
+    
+    return assigned;
   } catch (error) {
     throw new Error(`Failed to assign client to project: ${error.message}`);
   }

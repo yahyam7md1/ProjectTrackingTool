@@ -160,10 +160,40 @@ const deleteProject = (projectId) => {
   });
 };
 
+/**
+ * Find active projects by an array of project IDs
+ * @param {number[]} projectIds - Array of project IDs to find
+ * @returns {Promise<Array>} Array of active project objects
+ */
+const findActiveProjectsByIds = (projectIds) => {
+  return new Promise((resolve, reject) => {
+    if (!projectIds || projectIds.length === 0) {
+      return resolve([]);
+    }
+    
+    const placeholders = projectIds.map(() => '?').join(',');
+    const query = `
+      SELECT id, name 
+      FROM projects 
+      WHERE id IN (${placeholders}) 
+      AND status = 'Active'
+    `;
+    
+    db.all(query, projectIds, (err, projects) => {
+      if (err) {
+        return reject(err);
+      }
+      
+      resolve(projects);
+    });
+  });
+};
+
 module.exports = {
   createProject,
   findAllProjects,
   findProjectById,
   updateProject,
-  deleteProject
+  deleteProject,
+  findActiveProjectsByIds
 };

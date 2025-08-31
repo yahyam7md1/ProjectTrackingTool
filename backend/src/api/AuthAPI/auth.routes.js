@@ -13,7 +13,7 @@ const {
   verifyClientCode,
   adminSignup,
   verifyAdminAccount
-} = require('../controllers/authController');
+} = require('../../controllers/AuthController/authController');
 const router = express.Router();
 
 /**
