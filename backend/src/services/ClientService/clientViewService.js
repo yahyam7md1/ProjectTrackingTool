@@ -35,7 +35,7 @@ const getActiveProjectsForClient = async (clientId) => {
     
     return activeProjects;
   } catch (error) {
-    console.error('Error getting active projects for client:', error);
+    console.error('Error getting active projects for the client:', error);
     throw error;
   }
 };
