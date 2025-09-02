@@ -8,6 +8,8 @@ import ClientLogin from "../pages/Auth/client/ClientLogin";
 import VerificationCodeClient from "../pages/Auth/client/VerificationCodeClient";
 import AdminDashboard from "../pages/dashboards/admin/AdminDashboard";
 import ManageProjectPage from "../pages/dashboards/admin/ManageProjectPage";
+import NoActiveProjectsPage from "../pages/dashboards/client/NoActiveProjectsPage";
+import ClientMultiProjectDashboard from "../pages/dashboards/client/ClientMultiProjectDashboard";
 import { ProjectsProvider } from "../context/ProjectsContext";
 
 const AppRoutes: React.FC = () => {
@@ -32,6 +34,21 @@ const AppRoutes: React.FC = () => {
 			<Route path="/admin/projects/:projectId?" element={
 				<ProjectsProvider>
 					<ManageProjectPage />
+				</ProjectsProvider>
+			} />
+			
+			{/* Client Routes */}
+			<Route path="/client/no-projects" element={<NoActiveProjectsPage />} />
+			<Route path="/client/dashboard" element={
+				<ProjectsProvider>
+					<ClientMultiProjectDashboard />
+				</ProjectsProvider>
+			} />
+			{/* Individual project view for clients */}
+			<Route path="/client/projects/:projectId" element={
+				<ProjectsProvider>
+					{/* This will be implemented later when creating the client project view */}
+					<ClientMultiProjectDashboard />
 				</ProjectsProvider>
 			} />
 		</Routes>
