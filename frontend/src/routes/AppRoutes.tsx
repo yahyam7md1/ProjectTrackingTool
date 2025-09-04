@@ -10,6 +10,7 @@ import AdminDashboard from "../pages/dashboards/admin/AdminDashboard";
 import ManageProjectPage from "../pages/dashboards/admin/ManageProjectPage";
 import NoActiveProjectsPage from "../pages/dashboards/client/NoActiveProjectsPage";
 import ClientMultiProjectDashboard from "../pages/dashboards/client/ClientMultiProjectDashboard";
+import ClientManageProjectPage from "../pages/dashboards/client/ClientManageProjectPage";
 import { ProjectsProvider } from "../context/ProjectsContext";
 
 const AppRoutes: React.FC = () => {
@@ -47,8 +48,7 @@ const AppRoutes: React.FC = () => {
 			{/* Individual project view for clients */}
 			<Route path="/client/projects/:projectId" element={
 				<ProjectsProvider>
-					{/* This will be implemented later when creating the client project view */}
-					<ClientMultiProjectDashboard />
+					<ClientManageProjectPage />
 				</ProjectsProvider>
 			} />
 		</Routes>
