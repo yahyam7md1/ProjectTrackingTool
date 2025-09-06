@@ -30,14 +30,14 @@ const ClientManageProjectPage: React.FC = () => {
         id: '3',
         name: 'Development',
         description: 'Front-end and back-end implementation based on approved designs. Includes database integration and API development.',
-        status: 'active' as const,
+        status: 'pending' as const,
         deadline: 'September 15, 2025'
       },
       {
         id: '4',
         name: 'Testing & QA',
         description: 'Quality assurance, bug fixing, and performance optimization across all browsers and devices.',
-        status: 'pending' as const,
+        status: 'completed' as const,
         deadline: 'October 1, 2025'
       },
       {

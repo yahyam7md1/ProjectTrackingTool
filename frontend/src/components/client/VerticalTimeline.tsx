@@ -26,46 +26,64 @@ interface PhaseItemProps {
 const PhaseItem: React.FC<PhaseItemProps> = ({ phase, isFirst, isLast }) => {
   return (
     <div className={cn(
-      "grid grid-cols-[auto_1fr] gap-x-4",
-      phase.status === 'active' && "bg-primary/5 p-4 rounded-lg",
+      "grid grid-cols-[auto_1fr] gap-x-4 relative",
+      phase.status === 'active' && "bg-primary/5 rounded-lg",
     )}>
       {/* Column 1: Timeline Track (Line and Circle) */}
-      <div className="relative w-12 flex items-center justify-center min-h-[60px]">
-        {/* Vertical Line Container - provides continuous track */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          {/* Continuous vertical line */}
-          <div className={cn(
-            "absolute h-full w-0.5 left-1/2 -translate-x-1/2",
-            isFirst && "top-1/2",
-            isLast && "bottom-1/2",
-            phase.status === 'completed' || phase.status === 'active' ? "bg-primary" : 
-            "border-r-2 border-dashed border-gray-300"
-          )} />
-          
-          {/* Circle/Icon with background to hide line and create illusion of separate segments */}
-          <div className="relative z-10 flex items-center justify-center p-1 bg-white rounded-full">
-            {phase.status === 'completed' && (
-              <div className="bg-primary h-8 w-8 rounded-full flex items-center justify-center">
-                <Check className="h-5 w-5 text-white" />
+      <div className={cn(
+        "relative w-12 flex items-center justify-center min-h-[60px]",
+        phase.status === 'active' && "pl-4"
+      )}>
+        {/* Top half line - conditionally rendered if not first */}
+        {!isFirst && (
+          <div 
+            className={cn(
+              "absolute top-[-32px] h-1/2 w-0.5 left-6 -translate-x-1/2",
+              phase.status === 'completed' || phase.status === 'active' 
+                ? "bg-primary" 
+                : "border-r-2 border-dashed border-gray-300"
+            )} 
+          />
+        )}
+        
+        {/* Bottom half line - conditionally rendered if not last */}
+        {!isLast && (
+          <div 
+            className={cn(
+              "absolute bottom-0 h-1/2 w-0.5 left-6 -translate-x-1/2",
+              phase.status === 'completed' || phase.status === 'active' 
+                ? "bg-primary" 
+                : "border-r-2 border-dashed border-gray-300"
+            )} 
+          />
+        )}
+        
+        {/* Circle/Icon positioned at the center of the row */}
+        <div className="absolute top-1/2 -translate-y-1/2 left-6 -translate-x-1/2 z-10 flex items-center justify-center p-1 bg-white rounded-full">
+          {phase.status === 'completed' && (
+            <div className="bg-primary h-8 w-8 rounded-full flex items-center justify-center">
+              <Check className="h-5 w-5 text-white" />
+            </div>
+          )}
+          {phase.status === 'active' && (
+            <div className="relative flex items-center justify-center">
+              <div className="bg-primary h-10 w-10 rounded-full flex items-center justify-center">
+                <div className="h-3 w-3 bg-white rounded-full" />
               </div>
-            )}
-            {phase.status === 'active' && (
-              <div className="relative flex items-center justify-center">
-                <div className="bg-primary h-10 w-10 rounded-full flex items-center justify-center">
-                  <div className="h-3 w-3 bg-white rounded-full" />
-                </div>
-                <div className="absolute inset-0 rounded-full bg-primary/30 animate-ping" />
-              </div>
-            )}
-            {phase.status === 'pending' && (
-              <div className="border-2 border-gray-300 h-7 w-7 rounded-full" />
-            )}
-          </div>
+              <div className="absolute inset-0 rounded-full bg-primary/30 animate-ping" />
+            </div>
+          )}
+          {phase.status === 'pending' && (
+            <div className="border-2 border-gray-300 h-7 w-7 rounded-full" />
+          )}
         </div>
       </div>
       
       {/* Column 2: Content */}
-      <div className="py-2 space-y-3">
+      <div className={cn(
+        "py-2 space-y-3",
+        phase.status === 'active' && "pr-4 pt-4 pb-4"
+      )}>
         <div className="flex items-center space-x-3">
           <h3 
             className={cn(
@@ -128,13 +146,13 @@ export const VerticalTimeline: React.FC<VerticalTimelineProps> = ({ phases }) =>
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, amount: 0.1 }}
-      className="mt-6 space-y-16 ml-4 md:ml-12"
+      className="mt-6 space-y-8 ml-4 md:ml-12"
     >
       {phases.map((phase, index) => (
         <motion.li
           key={phase.id}
           variants={item}
-          className="relative py-2"
+          className="relative"
         >
           <PhaseItem 
             phase={phase} 
