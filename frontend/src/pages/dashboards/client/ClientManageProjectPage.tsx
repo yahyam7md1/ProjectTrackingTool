@@ -71,7 +71,7 @@ const ClientManageProjectPage: React.FC = () => {
 
         {/* Project Timeline */}
         <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Project Timeline</h2>
+          <h2 className="text-xl font-semibold mb-4 pl-2 py-2">Project Timeline</h2>
           <VerticalTimeline phases={mockProject.phases} />
         </Card>
       </main>
