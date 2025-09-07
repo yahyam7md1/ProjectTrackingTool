@@ -23,7 +23,7 @@ const ClientManageProjectPage: React.FC = () => {
         id: '2',
         name: 'Design & Wireframing',
         description: 'Creating wireframes and design mockups for approval. Including responsive layouts for all devices.',
-        status: 'completed' as const,
+        status: 'active' as const,
         deadline: 'August 1, 2025'
       },
       {
@@ -33,20 +33,7 @@ const ClientManageProjectPage: React.FC = () => {
         status: 'pending' as const,
         deadline: 'September 15, 2025'
       },
-      {
-        id: '4',
-        name: 'Testing & QA',
-        description: 'Quality assurance, bug fixing, and performance optimization across all browsers and devices.',
-        status: 'completed' as const,
-        deadline: 'October 1, 2025'
-      },
-      {
-        id: '5',
-        name: 'Deployment & Launch',
-        description: 'Final deployment to production servers and official launch of the new website.',
-        status: 'pending' as const,
-        deadline: 'October 15, 2025'
-      }
+      
     ]
   };
 

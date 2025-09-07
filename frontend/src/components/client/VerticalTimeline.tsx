@@ -85,23 +85,26 @@ const PhaseItem: React.FC<PhaseItemProps> = ({ phase, isFirst, isLast }) => {
         phase.status === 'active' && "pr-4 pt-4 pb-4"
       )}>
         <div className="flex items-center space-x-3">
-          <h3 
-            className={cn(
-              "text-lg",
-              phase.status === 'active' && "font-bold",
-              phase.status === 'pending' && "text-gray-500"
-            )}
-          >
-            {phase.name}
-          </h3>
+          <div className="grid grid-cols-[1fr_auto] gap-2 items-center w-full pr-12">
+            <h3
+              className={cn(
+                "text-lg",
+                phase.status === 'active' && "font-bold",
+                phase.status === 'pending' && "text-gray-500"
+              )}
+            >
+              {phase.name}
+            </h3>
           <Badge 
             variant={
               phase.status === 'completed' ? 'success' : 
               phase.status === 'active' ? 'default' : 'outline'
             }
+            className="whitespace-nowrap"
           >
             {phase.status.charAt(0).toUpperCase() + phase.status.slice(1)}
           </Badge>
+          </div>
         </div>
         
         <p className={cn(
