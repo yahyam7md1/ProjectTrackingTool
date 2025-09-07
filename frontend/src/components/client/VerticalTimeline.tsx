@@ -38,7 +38,7 @@ const PhaseItem: React.FC<PhaseItemProps> = ({ phase, isFirst, isLast }) => {
         {!isFirst && (
           <div 
             className={cn(
-              "absolute top-[-32px] h-1/2 w-0.5 left-6 -translate-x-1/2",
+              "absolute top-[-20px] h-1/2 w-0.5 left-6 -translate-x-1/2",
               phase.status === 'completed' || phase.status === 'active' 
                 ? "bg-primary" 
                 : "border-r-2 border-dashed border-gray-300"
@@ -146,7 +146,7 @@ export const VerticalTimeline: React.FC<VerticalTimelineProps> = ({ phases }) =>
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, amount: 0.1 }}
-      className="mt-6 space-y-8 ml-4 md:ml-12"
+      className="mt-6 space-y-4 ml-4 md:ml-12"
     >
       {phases.map((phase, index) => (
         <motion.li
