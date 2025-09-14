@@ -290,7 +290,7 @@ const verifyAdminAccountService = async (email, code) => {
     
     // Step 8: Generate JWT token
     const token = jwt.sign(
-      { id: admin.id, email: admin.email, role: 'admin' },
+      { adminId: admin.id },
       JWT_SECRET,
       { expiresIn: '8h' }
     );
