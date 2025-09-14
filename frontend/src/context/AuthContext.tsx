@@ -81,7 +81,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const handleClientProjects = useCallback(async () => {
     try {
       const response = await apiService.get('/client/projects');
-      const projects = response.data.projects;
+      const projects = response.data.data; // Backend returns data in response.data.data
       
       if (!projects || projects.length === 0) {
         navigate('/client/no-projects');
