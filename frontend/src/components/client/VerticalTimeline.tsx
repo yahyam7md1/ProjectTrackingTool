@@ -8,9 +8,27 @@ export interface Phase {
   id: string;
   name: string;
   description: string;
-  status: 'completed' | 'active' | 'pending';
+  is_active?: boolean;
+  is_completed?: boolean;
+  status?: 'completed' | 'active' | 'pending';
   deadline?: string;
+  estimated_completion_at?: string | null;
 }
+
+// Helper function to derive phase status from is_active and is_completed flags
+export const getPhaseStatus = (phase: Phase): 'active' | 'completed' | 'pending' => {
+  if (phase.status) {
+    return phase.status;
+  }
+  
+  if (phase.is_completed) {
+    return 'completed';
+  }
+  if (phase.is_active) {
+    return 'active';
+  }
+  return 'pending';
+};
 
 interface VerticalTimelineProps {
   phases: Phase[];
@@ -24,22 +42,25 @@ interface PhaseItemProps {
 
 // Separate PhaseItem component for better organization
 const PhaseItem: React.FC<PhaseItemProps> = ({ phase, isFirst, isLast }) => {
+  const phaseStatus = getPhaseStatus(phase);
+  const deadlineDate = phase.estimated_completion_at || phase.deadline;
+  
   return (
     <div className={cn(
       "grid grid-cols-[auto_1fr] gap-x-4 relative",
-      phase.status === 'active' && "bg-primary/5 rounded-lg",
+      phaseStatus === 'active' && "bg-primary/5 rounded-lg",
     )}>
       {/* Column 1: Timeline Track (Line and Circle) */}
       <div className={cn(
         "relative w-12 flex items-center justify-center min-h-[60px]",
-        phase.status === 'active' && "pl-4"
+        phaseStatus === 'active' && "pl-4"
       )}>
         {/* Top half line - conditionally rendered if not first */}
         {!isFirst && (
           <div 
             className={cn(
               "absolute top-[-20px] h-1/2 w-0.5 left-6 -translate-x-1/2",
-              phase.status === 'completed' || phase.status === 'active' 
+              phaseStatus === 'completed' || phaseStatus === 'active' 
                 ? "bg-primary" 
                 : "border-r-2 border-dashed border-gray-300"
             )} 
@@ -51,7 +72,7 @@ const PhaseItem: React.FC<PhaseItemProps> = ({ phase, isFirst, isLast }) => {
           <div 
             className={cn(
               "absolute bottom-0 h-1/2 w-0.5 left-6 -translate-x-1/2",
-              phase.status === 'completed' || phase.status === 'active' 
+              phaseStatus === 'completed' || phaseStatus === 'active' 
                 ? "bg-primary" 
                 : "border-r-2 border-dashed border-gray-300"
             )} 
@@ -60,12 +81,12 @@ const PhaseItem: React.FC<PhaseItemProps> = ({ phase, isFirst, isLast }) => {
         
         {/* Circle/Icon positioned at the center of the row */}
         <div className="absolute top-1/2 -translate-y-1/2 left-6 -translate-x-1/2 z-10 flex items-center justify-center p-1 bg-white rounded-full">
-          {phase.status === 'completed' && (
+          {phaseStatus === 'completed' && (
             <div className="bg-primary h-8 w-8 rounded-full flex items-center justify-center">
               <Check className="h-5 w-5 text-white" />
             </div>
           )}
-          {phase.status === 'active' && (
+          {phaseStatus === 'active' && (
             <div className="relative flex items-center justify-center">
               <div className="bg-primary h-10 w-10 rounded-full flex items-center justify-center">
                 <div className="h-3 w-3 bg-white rounded-full" />
@@ -73,7 +94,7 @@ const PhaseItem: React.FC<PhaseItemProps> = ({ phase, isFirst, isLast }) => {
               <div className="absolute inset-0 rounded-full bg-primary/30 animate-ping" />
             </div>
           )}
-          {phase.status === 'pending' && (
+          {phaseStatus === 'pending' && (
             <div className="border-2 border-gray-300 h-7 w-7 rounded-full" />
           )}
         </div>
@@ -82,44 +103,44 @@ const PhaseItem: React.FC<PhaseItemProps> = ({ phase, isFirst, isLast }) => {
       {/* Column 2: Content */}
       <div className={cn(
         "py-2 space-y-3",
-        phase.status === 'active' && "pr-4 pt-4 pb-4"
+        phaseStatus === 'active' && "pr-4 pt-4 pb-4"
       )}>
         <div className="flex items-center space-x-3">
           <div className="grid grid-cols-[1fr_auto] gap-2 items-center w-full pr-12">
             <h3
               className={cn(
                 "text-lg",
-                phase.status === 'active' && "font-bold",
-                phase.status === 'pending' && "text-gray-500"
+                phaseStatus === 'active' && "font-bold",
+                phaseStatus === 'pending' && "text-gray-500"
               )}
             >
               {phase.name}
             </h3>
           <Badge 
             variant={
-              phase.status === 'completed' ? 'success' : 
-              phase.status === 'active' ? 'default' : 'outline'
+              phaseStatus === 'completed' ? 'success' : 
+              phaseStatus === 'active' ? 'default' : 'outline'
             }
             className="whitespace-nowrap"
           >
-            {phase.status.charAt(0).toUpperCase() + phase.status.slice(1)}
+            {phaseStatus.charAt(0).toUpperCase() + phaseStatus.slice(1)}
           </Badge>
           </div>
         </div>
         
         <p className={cn(
           "text-sm text-gray-700",
-          phase.status === 'pending' && "text-gray-500"
+          phaseStatus === 'pending' && "text-gray-500"
         )}>
           {phase.description}
         </p>
         
-        {phase.deadline && (
+        {deadlineDate && (
           <div className={cn(
             "text-xs font-medium",
-            phase.status === 'pending' ? "text-gray-500" : "text-gray-700"
+            phaseStatus === 'pending' ? "text-gray-500" : "text-gray-700"
           )}>
-            Deadline: {phase.deadline}
+            Deadline: {deadlineDate}
           </div>
         )}
       </div>
