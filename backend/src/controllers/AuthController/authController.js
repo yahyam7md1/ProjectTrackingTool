@@ -8,7 +8,8 @@ const {
   requestClientCodeService,
   verifyClientCodeService,
   signupAdminService,
-  verifyAdminAccountService
+  verifyAdminAccountService,
+  resendAdminVerificationCode
 } = require('../../services/Auth/authService');
 
 /**
@@ -260,10 +261,62 @@ const verifyAdminAccount = async (req, res) => {
   }
 };
 
+/**
+ * @function resendAdminCode
+ * @desc    Handles resending verification code for admin signup
+ * @param   {Object} req - Express request object
+ * @param   {Object} res - Express response object
+ * @returns {Object} - Response with status and message
+ */
+const resendAdminCode = async (req, res) => {
+  try {
+    // Extract email from request body
+    const { email } = req.body;
+    
+    // Validate input
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required'
+      });
+    }
+    
+    // Call the service function to resend the verification code
+    await resendAdminVerificationCode(email);
+    
+    // Return success response
+    return res.status(200).json({
+      success: true,
+      message: 'Verification code has been resent successfully'
+    });
+  } catch (error) {
+    console.error('Resend admin code error:', error);
+    
+    // Check for specific error messages
+    if (
+      error.message === 'Admin account not found' ||
+      error.message === 'Admin account is already verified'
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+    
+    // Generic server error
+    return res.status(500).json({
+      success: false,
+      message: 'An error occurred while resending the verification code',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 module.exports = {
   adminLogin,
   requestClientCode,
   verifyClientCode,
   adminSignup,
-  verifyAdminAccount
+  verifyAdminAccount,
+  resendAdminCode
 };

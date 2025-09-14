@@ -12,7 +12,8 @@ const {
   requestClientCode, 
   verifyClientCode,
   adminSignup,
-  verifyAdminAccount
+  verifyAdminAccount,
+  resendAdminCode
 } = require('../../controllers/AuthController/authController');
 const router = express.Router();
 
@@ -50,5 +51,12 @@ router.post('/admin/signup', adminSignup);
  * @access  Public
  */
 router.post('/admin/verify-account', verifyAdminAccount);
+
+/**
+ * @route   POST /admin/resend-code
+ * @desc    Resend verification code for admin signup
+ * @access  Public
+ */
+router.post('/admin/resend-code', resendAdminCode);
 
 module.exports = router;

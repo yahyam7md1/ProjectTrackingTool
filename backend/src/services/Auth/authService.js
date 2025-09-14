@@ -309,10 +309,57 @@ const verifyAdminAccountService = async (email, code) => {
   }
 };
 
+/**
+ * @function resendAdminVerificationCode
+ * @desc    Service function for resending admin verification code
+ * @param   {String} email - Admin email
+ * @returns {Promise<void>} - Promise resolving when completed
+ * @throws  {Error} - Throws error for any issues
+ */
+const resendAdminVerificationCode = async (email) => {
+  try {
+    // Import required dependencies
+    const { findAdminByEmail, createAdminVerificationCode } = require('../../db/repo/AuthRepo/authRepository');
+    const { sendVerificationEmail } = require('../../utils/emailService');
+    
+    // Step 1: Find the admin by email
+    const admin = await findAdminByEmail(email);
+    
+    if (!admin) {
+      throw new Error('Admin account not found');
+    }
+    
+    // Step 2: Check if the admin is already verified
+    if (admin.is_verified) {
+      throw new Error('Admin account is already verified');
+    }
+    
+    // Step 3: Generate a new verification code
+    const generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Step 4: Calculate expiration (10 minutes from now)
+    const expirationDate = new Date(Date.now() + 10 * 60 * 1000);
+    
+    // Step 5: Save code to database
+    await createAdminVerificationCode(admin.id, generatedCode, expirationDate);
+    
+    // Step 6: Send verification email
+    await sendVerificationEmail(admin.email, generatedCode);
+    
+    console.log(`New verification code sent to admin: ${email}`);
+    
+    // Step 7: Return success (no data needed)
+  } catch (error) {
+    console.error('Error in resendAdminVerificationCode:', error);
+    throw error;
+  }
+};
+
 module.exports = {
   loginAdminService,
   requestClientCodeService,
   verifyClientCodeService,
   signupAdminService,
-  verifyAdminAccountService
+  verifyAdminAccountService,
+  resendAdminVerificationCode
 };
