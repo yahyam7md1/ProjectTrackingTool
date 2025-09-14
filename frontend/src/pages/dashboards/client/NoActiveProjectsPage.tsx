@@ -27,12 +27,14 @@ const NoActiveProjectsPage: React.FC = () => {
           </p>
           
           {/* Additional contact button - the logout is already in header */}
+          {/* <Button 
           <Button 
             variant="secondary"
             className="shadow-sm"
           >
             Contact Support
           </Button>
+          */}
         </div>
       </div>
     </ClientHeaderLayout>
