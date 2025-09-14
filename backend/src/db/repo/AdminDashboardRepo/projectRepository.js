@@ -173,16 +173,35 @@ const findActiveProjectsByIds = (projectIds) => {
     
     const placeholders = projectIds.map(() => '?').join(',');
     const query = `
-      SELECT id, name 
-      FROM projects 
-      WHERE id IN (${placeholders}) 
-      AND status = 'Active'
+      SELECT 
+        p.*,
+        COUNT(DISTINCT pc.client_id) as clientCount,
+        COUNT(DISTINCT ph.id) as phasesCount,
+        SUM(CASE WHEN ph.is_completed = 1 THEN 1 ELSE 0 END) as phasesCompletedCount
+      FROM 
+        projects p
+      LEFT JOIN 
+        project_clients pc ON p.id = pc.project_id
+      LEFT JOIN
+        phases ph ON p.id = ph.project_id
+      WHERE 
+        p.id IN (${placeholders}) 
+        AND p.status = 'Active'
+      GROUP BY 
+        p.id
     `;
     
     db.all(query, projectIds, (err, projects) => {
       if (err) {
         return reject(err);
       }
+      
+      // Convert NULL to 0 for counts to ensure we don't have null values
+      projects.forEach(project => {
+        project.phasesCount = project.phasesCount || 0;
+        project.phasesCompletedCount = project.phasesCompletedCount || 0;
+        project.clientCount = project.clientCount || 0;
+      });
       
       resolve(projects);
     });
