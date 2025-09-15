@@ -332,12 +332,12 @@ const ManageProjectPage: React.FC = () => {
   };
 
   // Handle client remove
-  const handleRemoveClient = async (clientId: string) => {
+  const handleRemoveClient = async (clientId: number) => {
     if (!project) return;
     
     try {
       // Find the client's email for the notification message
-      const clientToRemove = project.clients?.find(c => c.id.toString() === clientId.toString());
+      const clientToRemove = project.clients?.find(c => Number(c.id) === clientId);
       const clientEmail = clientToRemove?.email || 'Client';
       
       console.log(`Removing client with ID: ${clientId}, email: ${clientEmail}`);

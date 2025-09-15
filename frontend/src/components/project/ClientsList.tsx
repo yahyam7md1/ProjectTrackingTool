@@ -12,7 +12,7 @@ interface ClientsListProps {
   projectId: string;
   clients: Client[];
   onAddClient: (email: string) => void;
-  onRemoveClient: (clientId: string) => void;
+  onRemoveClient: (clientId: number) => void;
   refetchData?: () => void;
   hideHeader?: boolean; // New prop to hide the header when it's shown in the parent
   hideForm?: boolean; // New prop to hide the form when it's shown in the parent

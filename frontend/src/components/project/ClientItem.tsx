@@ -8,7 +8,7 @@ import * as AlertDialog from '@radix-ui/react-alert-dialog';
 
 
 export type Client = {
-  id: string;
+  id: number;
   email: string;
   name?: string;
   role?: string;
@@ -17,7 +17,7 @@ export type Client = {
 
 interface ClientItemProps {
   client: Client;
-  onRemove: (clientId: string) => void;
+  onRemove: (clientId: number) => void;
 }
 
 const ClientItem: React.FC<ClientItemProps> = ({ client, onRemove }) => {
