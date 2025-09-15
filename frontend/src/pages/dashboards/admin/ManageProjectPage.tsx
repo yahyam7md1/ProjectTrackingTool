@@ -5,6 +5,7 @@ import * as Tabs from '@radix-ui/react-tabs';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../../utils/cn';
 import apiService from '../../../api/apiService';
+import { useToast } from '../../../components/ui/ToastProvider';
 import PhasesList from '../../../components/project/PhasesList';
 import { Phase } from '../../../components/project/EnhancedPhaseItem';
 import { Client } from '../../../components/project/ClientItem';
@@ -156,6 +157,9 @@ const ManageProjectPage: React.FC = () => {
   
   // Access the projects context
   const { projects, refreshProject, fetchProjects } = useProjects();
+  
+  // Get the toast function
+  const { addToast } = useToast();
   
   const [project, setProject] = useState<ProjectType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -332,14 +336,23 @@ const ManageProjectPage: React.FC = () => {
     if (!project) return;
     
     try {
+      // Find the client's email for the notification message
+      const clientToRemove = project.clients?.find(c => c.id.toString() === clientId.toString());
+      const clientEmail = clientToRemove?.email || 'Client';
+      
+      console.log(`Removing client with ID: ${clientId}, email: ${clientEmail}`);
+      
       // Remove client on the server
       await apiService.delete(`/admin/projects/${project.id}/clients/${clientId}`);
+      
+      // Show toast notification
+      addToast(`${clientEmail} has been removed from the project`, 'success');
       
       // Use the refetchProjectData function instead
       await refetchProjectData();
     } catch (err) {
       console.error('Error removing client:', err);
-      // Could add error handling/notification here
+      addToast('Failed to remove client. Please try again.', 'error');
     }
   };
   

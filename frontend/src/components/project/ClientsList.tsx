@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import Input from '../ui/Input';
 import ClientItem, { Client } from './ClientItem';
 import apiService from '../../api/apiService';
+import { useToast } from '../ui/ToastProvider';
 
 interface ClientsListProps {
   projectId: string;
@@ -28,6 +29,7 @@ const ClientsList: React.FC<ClientsListProps> = ({
 }) => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const { addToast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,8 +56,17 @@ const ClientsList: React.FC<ClientsListProps> = ({
     setError(null);
     
     try {
-      // Make API request to add client - fix the /api prefix
-      await apiService.post(`/admin/projects/${projectId}/clients`, { email });
+      // Make API request to add client
+      const response = await apiService.post(`/admin/projects/${projectId}/clients`, { email });
+      
+      // Handle partial success (client added but email failed)
+      if (response.data.partialSuccess) {
+        addToast('Client added, but notification email could not be sent', 'warning');
+        setError('Client added, but we couldn\'t send them a notification email. They may have limited access.');
+      } else {
+        // Complete success
+        addToast(`Client ${email} added successfully`, 'success');
+      }
       
       // Add the client via the parent component handler
       onAddClient(email);
@@ -67,9 +78,25 @@ const ClientsList: React.FC<ClientsListProps> = ({
       if (refetchData) {
         refetchData();
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error adding client:', err);
-      setError('Failed to add client. Please try again.');
+      
+      // Handle different error types
+      if (err.response?.data?.validationError) {
+        // This is an email validation error
+        const errorMsg = err.response.data.error || 'Invalid email address. Please check and try again.';
+        setError(errorMsg);
+        addToast(errorMsg, 'error');
+      } else if (err.response?.status === 400) {
+        // Bad request - likely invalid input
+        const errorMsg = err.response.data.error || 'Invalid input. Please check and try again.';
+        setError(errorMsg);
+        addToast(errorMsg, 'error');
+      } else {
+        // Generic server error
+        setError('Failed to add client. Please try again.');
+        addToast('Failed to add client. Please try again.', 'error');
+      }
     }
   };
 

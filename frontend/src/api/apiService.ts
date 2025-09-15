@@ -19,7 +19,13 @@ const getAuthHeaders = () => {
 
 // Response interceptor for centralized error handling
 baseApiService.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Handle multi-status responses (207) as successful but with partial failures
+    if (response.status === 207) {
+      console.warn(`Partial success on ${response.config?.url || 'unknown endpoint'}:`, response.data);
+    }
+    return response;
+  },
   (error) => {
     // Log API errors centrally
     console.error(`API Error on ${error.config?.url || 'unknown endpoint'}:`, error);
@@ -30,6 +36,8 @@ baseApiService.interceptors.response.use(
       
       // You could add additional logic here like refreshing the token
       // or redirecting to login if needed
+    } else if (error.response?.status === 400 && error.response?.data?.validationError) {
+      console.warn("Validation error:", error.response.data.error);
     }
     
     return Promise.reject(error);
