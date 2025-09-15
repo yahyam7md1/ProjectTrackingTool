@@ -5,16 +5,22 @@
 
 const clientRepository = require('../../db/repo/AdminDashboardRepo/clientRepository');
 const projectRepository = require('../../db/repo/AdminDashboardRepo/projectRepository');
-const emailService = require('../../utils/emailService');
+const emailService = require('../../utils/brevoEmailService');
 
 /**
  * Assign a client to a project
  * @param {number} projectId - The ID of the project
  * @param {string} email - The email of the client
- * @returns {Promise<boolean>} True if the client was successfully assigned
+ * @returns {Promise<Object>} Result object with status and client info
  */
 const assignClient = async (projectId, email) => {
   try {
+    // Validate email first before proceeding
+    const isValidEmail = await emailService.validateEmail(email);
+    if (!isValidEmail) {
+      throw new Error('Invalid email address. Please provide a valid email.');
+    }
+    
     // First, try to find the client by email
     let client = await clientRepository.findClientByEmail(email);
     
@@ -27,14 +33,36 @@ const assignClient = async (projectId, email) => {
     const assigned = await clientRepository.assignClientToProject(projectId, client.id);
     
     if (assigned) {
-      // Get project details to include in the email
-      const project = await projectRepository.findProjectById(projectId);
-      
-      // Send email notification
-      await emailService.sendProjectAssignmentNotification(email, project.name);
+      try {
+        // Get project details to include in the email
+        const project = await projectRepository.findProjectById(projectId);
+        
+        // Send email notification
+        await emailService.sendProjectAssignmentNotification(email, project.name);
+        
+        return {
+          success: true,
+          emailSent: true,
+          client
+        };
+      } catch (emailError) {
+        console.error(`Failed to send email to ${email}:`, emailError);
+        
+        // Return partial success
+        return {
+          success: true,
+          emailSent: false,
+          emailError: emailError.message,
+          client
+        };
+      }
     }
     
-    return assigned;
+    return {
+      success: true,
+      emailSent: false,
+      client
+    };
   } catch (error) {
     throw new Error(`Failed to assign client to project: ${error.message}`);
   }
