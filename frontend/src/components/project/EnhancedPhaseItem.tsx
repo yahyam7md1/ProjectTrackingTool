@@ -39,6 +39,7 @@ interface EnhancedPhaseItemProps {
   onSetActive?: (id: string) => void;
   onComplete?: (id: string) => void;
   onReopen?: (id: string) => void;
+  onDeactivate?: (id: string) => void;
   onUpdate?: (id: string, data: { name: string; description: string; estimated_completion_at?: string | null }) => void;
   onDelete?: (id: string) => void;
   refetchData?: () => Promise<void>;
@@ -50,6 +51,7 @@ const EnhancedPhaseItem: React.FC<EnhancedPhaseItemProps> = ({
   onSetActive, 
   onComplete,
   onReopen,
+  onDeactivate,
   onUpdate,
   onDelete,
   refetchData
@@ -136,6 +138,31 @@ const EnhancedPhaseItem: React.FC<EnhancedPhaseItemProps> = ({
       }
     } catch (error) {
       console.error('Error reopening phase:', error);
+    }
+  };
+  
+  // New handler function for deactivating an active phase (reuses the reopen endpoint)
+  const handleDeactivatePhase = async () => {
+    if (!projectId) {
+      console.error('Cannot deactivate phase: projectId is missing');
+      return;
+    }
+    
+    try {
+      console.log(`Deactivating phase ${phase.id} for project ${projectId}`);
+      
+      // Reuse the reopen endpoint since it provides the same functionality
+      await apiService.post(`/admin/projects/${projectId}/phases/${phase.id}/reopen`);
+      
+      console.log('Phase deactivated successfully');
+      
+      // If the parent component provided a refetch function, call it to update the UI
+      if (refetchData) {
+        await refetchData();
+        console.log('Project data refetched after deactivating phase');
+      }
+    } catch (error) {
+      console.error('Error deactivating phase:', error);
     }
   };
   
@@ -304,23 +331,41 @@ const EnhancedPhaseItem: React.FC<EnhancedPhaseItemProps> = ({
                     </Button>
                   )}
                   {status === 'active' && (
-                    <Button 
-                      size="sm" 
-                      variant="secondary" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (onComplete) {
-                          onComplete(phase.id);
-                        } else if (projectId) {
-                          handleSetComplete();
-                        } else {
-                          console.error('Cannot mark phase as complete: both onComplete and projectId are missing');
-                        }
-                      }}
-                      leftIcon={<CheckCircle className="w-4 h-4" />}
-                    >
-                      Mark as Complete
-                    </Button>
+                    <>
+                      <Button 
+                        size="sm" 
+                        variant="secondary" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onComplete) {
+                            onComplete(phase.id);
+                          } else if (projectId) {
+                            handleSetComplete();
+                          } else {
+                            console.error('Cannot mark phase as complete: both onComplete and projectId are missing');
+                          }
+                        }}
+                        leftIcon={<CheckCircle className="w-4 h-4" />}
+                      >
+                        Mark as Complete
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onDeactivate) {
+                            onDeactivate(phase.id);
+                          } else if (projectId) {
+                            handleDeactivatePhase();
+                          } else {
+                            console.error('Cannot deactivate phase: both onDeactivate and projectId are missing');
+                          }
+                        }}
+                      >
+                        Deactivate
+                      </Button>
+                    </>
                   )}
                   {status === 'completed' && (
                     <Button 
