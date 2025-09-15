@@ -16,6 +16,7 @@ import {
 import apiService from '../../../api/apiService';
 import { useAuth } from '../../../context/AuthContext';
 import { useProjects, ProjectType } from '../../../context/ProjectsContext';
+import ClientHeaderLayout from '../../../layouts/ClientHeaderLayout';
 
 // Using ProjectType from context
 
@@ -93,14 +94,15 @@ const AdminDashboard: React.FC = () => {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto bg-white min-h-screen">
-      {isLoading ? (
-        /* Loading State */
-        <div className="flex flex-col items-center justify-center h-[70vh]">
-          <Loader2 size={48} className="animate-spin text-primary mb-4" />
-          <p className="text-lg text-gray-500">Loading projects...</p>
-        </div>
-      ) : error ? (
+    <ClientHeaderLayout pageTitle="Admin Dashboard">
+      <div className="p-6 max-w-7xl mx-auto bg-white min-h-screen">
+        {isLoading ? (
+          /* Loading State */
+          <div className="flex flex-col items-center justify-center h-[70vh]">
+            <Loader2 size={48} className="animate-spin text-primary mb-4" />
+            <p className="text-lg text-gray-500">Loading projects...</p>
+          </div>
+        ) : error ? (
         /* Error State */
         <div className="flex flex-col items-center justify-center h-[70vh]">
           <div className="text-center space-y-4">
@@ -215,6 +217,7 @@ const AdminDashboard: React.FC = () => {
         onCreateProject={handleCreateProject}
       />
     </div>
+    </ClientHeaderLayout>
   );
 };
 

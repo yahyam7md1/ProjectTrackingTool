@@ -16,6 +16,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../..
 import { Button } from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import { useProjects } from '../../../context/ProjectsContext';
+import ClientHeaderLayout from '../../../layouts/ClientHeaderLayout';
 
 // Define types for our API data
 type ProjectType = {
@@ -456,12 +457,13 @@ const ManageProjectPage: React.FC = () => {
   });
 
   return (
-    <motion.div 
-      className="container mx-auto px-4 py-8"
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-    >
+    <ClientHeaderLayout pageTitle={project?.name || "Manage Project"}>
+      <motion.div 
+        className="container mx-auto px-4 py-8"
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+      >
       {/* Mobile-first layout with grid for responsive behavior */}
       <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-8">
         {/* Left Column - Project Mini Dashboard */}
@@ -711,6 +713,7 @@ const ManageProjectPage: React.FC = () => {
         />
       )}
     </motion.div>
+    </ClientHeaderLayout>
   );
 };
 
