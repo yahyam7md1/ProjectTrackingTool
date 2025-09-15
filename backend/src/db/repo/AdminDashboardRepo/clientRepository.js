@@ -84,19 +84,20 @@ const assignClientToProject = (projectId, clientId) => {
  */
 const removeClientFromProject = (projectId, clientId) => {
   return new Promise((resolve, reject) => {
+    console.log(`[removeClientFromProject] projectId:`, projectId, typeof projectId, 'clientId:', clientId, typeof clientId);
     const query = `
       DELETE FROM project_clients
       WHERE project_id = ? AND client_id = ?
     `;
-    
     db.run(query, [projectId, clientId], function(err) {
       if (err) {
+        console.error('[removeClientFromProject] DB error:', err);
         return reject(err);
       }
-      
+      console.log(`[removeClientFromProject] Rows affected:`, this.changes);
       // Even if no rows were affected, we consider this successful
       // since the end state is what we want (client not assigned to project)
-      resolve(true);
+      resolve(this.changes > 0);
     });
   });
 };
