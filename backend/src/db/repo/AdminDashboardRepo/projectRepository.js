@@ -48,33 +48,24 @@ const findAllProjects = () => {
     const query = `
       SELECT 
         p.*,
-        COUNT(DISTINCT pc.client_id) as clientCount,
-        COUNT(DISTINCT ph.id) as phasesCount,
-        SUM(CASE WHEN ph.is_completed = 1 THEN 1 ELSE 0 END) as phasesCompletedCount
+        (SELECT COUNT(DISTINCT pc.client_id) FROM project_clients pc WHERE pc.project_id = p.id) as clientCount,
+        (SELECT COUNT(DISTINCT ph.id) FROM phases ph WHERE ph.project_id = p.id) as phasesCount,
+        (SELECT COUNT(DISTINCT ph.id) FROM phases ph WHERE ph.project_id = p.id AND ph.is_completed = 1) as phasesCompletedCount
       FROM 
         projects p
-      LEFT JOIN 
-        project_clients pc ON p.id = pc.project_id
-      LEFT JOIN
-        phases ph ON p.id = ph.project_id
-      GROUP BY 
-        p.id
       ORDER BY 
         p.created_at DESC
     `;
-    
     db.all(query, [], (err, projects) => {
       if (err) {
         return reject(err);
       }
-      
       // Convert NULL to 0 for counts to ensure we don't have null values
       projects.forEach(project => {
         project.phasesCount = project.phasesCount || 0;
         project.phasesCompletedCount = project.phasesCompletedCount || 0;
         project.clientCount = project.clientCount || 0;
       });
-      
       resolve(projects);
     });
   });
