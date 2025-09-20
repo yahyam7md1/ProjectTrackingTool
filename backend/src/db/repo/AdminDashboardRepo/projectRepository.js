@@ -40,10 +40,11 @@ const createProject = (projectData) => {
 };
 
 /**
- * Find all projects with client count, total phases and completed phases count
+ * Find all projects with client count, total phases and completed phases count for a specific admin
+ * @param {number} adminId - The ID of the admin whose projects should be returned
  * @returns {Promise<Array>} Array of project objects with counts
  */
-const findAllProjects = () => {
+const findAllProjects = (adminId) => {
   return new Promise((resolve, reject) => {
     const query = `
       SELECT 
@@ -53,10 +54,12 @@ const findAllProjects = () => {
         (SELECT COUNT(DISTINCT ph.id) FROM phases ph WHERE ph.project_id = p.id AND ph.is_completed = 1) as phasesCompletedCount
       FROM 
         projects p
+      WHERE
+        p.created_by_admin_id = ?
       ORDER BY 
         p.created_at DESC
     `;
-    db.all(query, [], (err, projects) => {
+    db.all(query, [adminId], (err, projects) => {
       if (err) {
         return reject(err);
       }

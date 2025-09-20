@@ -24,12 +24,13 @@ const createProject = async (projectData) => {
 };
 
 /**
- * Get all projects
+ * Get all projects for a specific admin
+ * @param {number} adminId - The ID of the admin whose projects should be returned
  * @returns {Promise<Array>} Array of project objects with client count
  */
-const getAllProjects = async () => {
+const getAllProjects = async (adminId) => {
   try {
-    return await projectRepository.findAllProjects();
+    return await projectRepository.findAllProjects(adminId);
   } catch (error) {
     throw new Error(`Failed to get projects: ${error.message}`);
   }

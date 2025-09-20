@@ -83,15 +83,24 @@ const createProject = async (req, res) => {
 
 /**
  * @function getAllProjects
- * @desc    Retrieves all projects
+ * @desc    Retrieves all projects for the authenticated admin
  * @param   {Object} req - Express request object
  * @param   {Object} res - Express response object
  * @returns {Object} - Response with status and array of projects
  */
 const getAllProjects = async (req, res) => {
   try {
-    // Call service to get all projects
-    const projects = await projectService.getAllProjects();
+    // Extract admin ID from auth token
+    const adminId = req.admin?.adminId;
+    if (!adminId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication failed: Admin ID is missing from token'
+      });
+    }
+    
+    // Call service to get projects for this admin
+    const projects = await projectService.getAllProjects(adminId);
     
     // Return success response with projects array
     return res.status(200).json({
